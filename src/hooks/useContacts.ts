@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useSupabase } from "@/lib/QuickChatProvider";
 import { useAuth } from "@/contexts/AuthContext";
 
 export interface Contact {
@@ -16,6 +16,7 @@ export interface Contact {
 
 export const useContacts = () => {
   const { user } = useAuth();
+  const supabase = useSupabase();
   return useQuery({
     queryKey: ["contacts", user?.id],
     queryFn: async () => {
@@ -43,6 +44,7 @@ export const useContacts = () => {
 
 export const useAddContact = () => {
   const { user } = useAuth();
+  const supabase = useSupabase();
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (contactId: string) => {
@@ -55,6 +57,7 @@ export const useAddContact = () => {
 };
 
 export const useRemoveContact = () => {
+  const supabase = useSupabase();
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (contactRowId: string) => {
@@ -67,6 +70,7 @@ export const useRemoveContact = () => {
 
 export const useSearchUsers = (query: string) => {
   const { user } = useAuth();
+  const supabase = useSupabase();
   return useQuery({
     queryKey: ["searchUsers", query],
     queryFn: async () => {

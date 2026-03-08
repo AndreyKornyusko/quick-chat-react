@@ -1,5 +1,5 @@
 import { useInfiniteQuery, useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useSupabase } from "@/lib/QuickChatProvider";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useMemo } from "react";
 import type { Tables } from "@/integrations/supabase/types";
@@ -17,13 +17,9 @@ export type Message = Tables<"messages"> & {
   _tempId?: string;
 };
 
-/**
- * Paginated messages hook using useInfiniteQuery.
- * Pages are fetched newest-first (DESC) and reversed for display (oldest-first).
- * "Next page" = older messages (scroll up to load more).
- */
 export const useMessages = (conversationId: string | null) => {
   const { user } = useAuth();
+  const supabase = useSupabase();
   const qc = useQueryClient();
 
   const query = useInfiniteQuery({
@@ -42,7 +38,6 @@ export const useMessages = (conversationId: string | null) => {
         .range(from, to);
       if (error) throw error;
 
-      // Enrich each message with profile, reply_to, and read_by
       const enriched: Message[] = [];
       for (const msg of msgs ?? []) {
         const { data: profile } = await supabase
@@ -96,7 +91,6 @@ export const useMessages = (conversationId: string | null) => {
     },
     initialPageParam: 0,
     getNextPageParam: (lastPage, allPages) => {
-      // If last page returned a full page, there may be more
       if (lastPage.length === PAGE_SIZE) {
         return allPages.length * PAGE_SIZE;
       }
@@ -105,7 +99,6 @@ export const useMessages = (conversationId: string | null) => {
     enabled: !!conversationId && !!user,
   });
 
-  // Realtime subscription — invalidate on changes
   useEffect(() => {
     if (!conversationId) return;
     const channel = supabase
@@ -119,12 +112,10 @@ export const useMessages = (conversationId: string | null) => {
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, [conversationId, qc]);
+  }, [conversationId, qc, supabase]);
 
-  // Flatten pages into a single array, reversed so oldest messages come first
   const allMessages = useMemo(() => {
     if (!query.data) return [];
-    // Each page is newest-first; reverse each page, then reverse page order
     const flat: Message[] = [];
     const pages = [...query.data.pages].reverse();
     for (const page of pages) {
@@ -142,19 +133,15 @@ export const useMessages = (conversationId: string | null) => {
   };
 };
 
-/**
- * Returns a Set of message IDs that are unread for the current user.
- * Only considers messages from other users.
- */
 export const useUnreadMessageIds = (conversationId: string | null) => {
   const { user } = useAuth();
+  const supabase = useSupabase();
 
   const query = useQuery({
     queryKey: ["unread-ids", conversationId, user?.id],
     queryFn: async () => {
       if (!conversationId || !user) return new Set<string>();
 
-      // Get all messages in this conversation from other users
       const { data: msgs } = await supabase
         .from("messages")
         .select("id")
@@ -163,7 +150,6 @@ export const useUnreadMessageIds = (conversationId: string | null) => {
 
       if (!msgs || msgs.length === 0) return new Set<string>();
 
-      // Get all read receipts for the current user in this conversation
       const msgIds = msgs.map((m) => m.id);
       const { data: reads } = await supabase
         .from("message_reads")
@@ -182,6 +168,7 @@ export const useUnreadMessageIds = (conversationId: string | null) => {
 
 export const useSendMessage = () => {
   const { user } = useAuth();
+  const supabase = useSupabase();
   const qc = useQueryClient();
 
   return useMutation({
@@ -194,7 +181,7 @@ export const useSendMessage = () => {
       file_size?: number;
       reply_to_id?: string;
       forwarded_from_id?: string;
-      _tempId?: string; // internal, not sent to DB
+      _tempId?: string;
     }) => {
       if (!user) throw new Error("Not authenticated");
       const { _tempId, ...dbMsg } = msg;
@@ -235,11 +222,9 @@ export const useSendMessage = () => {
         _status: "sending" as any,
       };
 
-      // Add to the last page of infinite query
       qc.setQueryData(queryKey, (old: any) => {
         if (!old?.pages) return old;
         const newPages = [...old.pages];
-        // Messages in pages are newest-first, add at beginning of first page
         newPages[0] = [optimisticMessage, ...(newPages[0] || [])];
         return { ...old, pages: newPages };
       });
@@ -248,7 +233,6 @@ export const useSendMessage = () => {
     },
     onSuccess: (result, vars) => {
       const queryKey = ["messages", vars.conversation_id];
-      // Replace optimistic message with real one
       qc.setQueryData(queryKey, (old: any) => {
         if (!old?.pages) return old;
         const realMsg: Message = {
@@ -268,7 +252,6 @@ export const useSendMessage = () => {
     },
     onError: (_err, vars, context) => {
       const queryKey = ["messages", vars.conversation_id];
-      // Mark the optimistic message as failed instead of rolling back
       qc.setQueryData(queryKey, (old: any) => {
         if (!old?.pages) return old;
         return {
@@ -286,6 +269,7 @@ export const useSendMessage = () => {
 };
 
 export const useEditMessage = () => {
+  const supabase = useSupabase();
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, content, conversationId }: { id: string; content: string; conversationId: string }) => {
@@ -300,6 +284,7 @@ export const useEditMessage = () => {
 };
 
 export const useDeleteMessage = () => {
+  const supabase = useSupabase();
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, conversationId }: { id: string; conversationId: string }) => {
@@ -315,6 +300,7 @@ export const useDeleteMessage = () => {
 
 export const useMarkAsRead = () => {
   const { user } = useAuth();
+  const supabase = useSupabase();
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ messageIds, conversationId }: { messageIds: string[]; conversationId: string }) => {

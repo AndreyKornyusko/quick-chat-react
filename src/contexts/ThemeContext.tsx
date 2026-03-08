@@ -16,8 +16,14 @@ const ThemeContext = createContext<ThemeContextType>({
 
 export const useTheme = () => useContext(ThemeContext);
 
-export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+interface ThemeProviderProps {
+  children: React.ReactNode;
+  initialTheme?: Theme;
+}
+
+export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children, initialTheme }) => {
   const [theme, setThemeState] = useState<Theme>(() => {
+    if (initialTheme) return initialTheme;
     return (localStorage.getItem("chat-theme") as Theme) || "system";
   });
 
