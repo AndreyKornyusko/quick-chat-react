@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useSupabase } from "@/lib/QuickChatProvider";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect } from "react";
 
@@ -16,6 +16,7 @@ export interface ConversationWithDetails {
 
 export const useConversations = () => {
   const { user } = useAuth();
+  const supabase = useSupabase();
   const qc = useQueryClient();
 
   const query = useQuery({
@@ -65,7 +66,6 @@ export const useConversations = () => {
           .limit(1)
           .maybeSingle();
 
-        // Count unread
         const { data: allMsgs } = await supabase
           .from("messages")
           .select("id")
@@ -101,7 +101,6 @@ export const useConversations = () => {
     refetchInterval: 30000,
   });
 
-  // Realtime subscription for new messages
   useEffect(() => {
     if (!user) return;
     const channel = supabase
@@ -115,20 +114,20 @@ export const useConversations = () => {
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, [user, qc]);
+  }, [user, qc, supabase]);
 
   return query;
 };
 
 export const useCreatePrivateConversation = () => {
   const { user } = useAuth();
+  const supabase = useSupabase();
   const qc = useQueryClient();
 
   return useMutation({
     mutationFn: async (contactId: string) => {
       if (!user) throw new Error("Not authenticated");
 
-      // Check if private conversation already exists
       const { data: myConvs } = await supabase
         .from("conversation_members")
         .select("conversation_id")
@@ -160,7 +159,6 @@ export const useCreatePrivateConversation = () => {
         .single();
       if (error) throw error;
 
-      // Insert owner first so RLS check passes for the second insert
       const { error: ownerErr } = await supabase.from("conversation_members").insert({ conversation_id: conv.id, user_id: user.id, role: "owner" });
       if (ownerErr) throw ownerErr;
       const { error: memberErr } = await supabase.from("conversation_members").insert({ conversation_id: conv.id, user_id: contactId, role: "member" });
@@ -176,6 +174,7 @@ export const useCreatePrivateConversation = () => {
 
 export const useCreateGroupConversation = () => {
   const { user } = useAuth();
+  const supabase = useSupabase();
   const qc = useQueryClient();
 
   return useMutation({
@@ -189,7 +188,6 @@ export const useCreateGroupConversation = () => {
         .single();
       if (error) throw error;
 
-      // Insert owner first so RLS check passes for subsequent inserts
       const { error: ownerErr } = await supabase.from("conversation_members").insert({ conversation_id: conv.id, user_id: user.id, role: "owner" as const });
       if (ownerErr) throw ownerErr;
 

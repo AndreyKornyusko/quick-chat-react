@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useSupabase } from "@/lib/QuickChatProvider";
 import { useAuth } from "@/contexts/AuthContext";
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -7,6 +7,7 @@ export type Profile = Tables<"profiles">;
 
 export const useProfile = () => {
   const { user } = useAuth();
+  const supabase = useSupabase();
 
   return useQuery({
     queryKey: ["profile", user?.id],
@@ -23,6 +24,7 @@ export const useProfile = () => {
 export const useUpdateProfile = () => {
   const qc = useQueryClient();
   const { user } = useAuth();
+  const supabase = useSupabase();
 
   return useMutation({
     mutationFn: async (updates: Partial<Profile>) => {

@@ -1,8 +1,8 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { QuickChatProvider } from "@/lib/QuickChatProvider";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import Index from "./pages/Index";
@@ -10,10 +10,20 @@ import Demo from "./pages/Demo";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL ?? "";
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? "";
+
+const defaultConfig = {
+  showGroups: true,
+  allowVoiceMessages: true,
+  allowFileUpload: true,
+  allowReactions: true,
+  showOnlineStatus: true,
+  showReadReceipts: true,
+};
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
+  <QuickChatProvider supabaseUrl={SUPABASE_URL} supabaseAnonKey={SUPABASE_KEY} config={defaultConfig}>
     <ThemeProvider>
       <AuthProvider>
         <TooltipProvider>
@@ -30,7 +40,7 @@ const App = () => (
         </TooltipProvider>
       </AuthProvider>
     </ThemeProvider>
-  </QueryClientProvider>
+  </QuickChatProvider>
 );
 
 export default App;

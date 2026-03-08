@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useSupabase } from "@/lib/QuickChatProvider";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect } from "react";
 
@@ -21,6 +21,7 @@ export interface GroupedReaction {
 
 export const useReactions = (conversationId: string | null) => {
   const { user } = useAuth();
+  const supabase = useSupabase();
   const qc = useQueryClient();
 
   const query = useQuery({
@@ -28,7 +29,6 @@ export const useReactions = (conversationId: string | null) => {
     queryFn: async () => {
       if (!conversationId) return {};
 
-      // Get all message IDs in conversation
       const { data: msgs } = await supabase
         .from("messages")
         .select("id")
@@ -38,7 +38,6 @@ export const useReactions = (conversationId: string | null) => {
 
       const msgIds = msgs.map((m) => m.id);
 
-      // Fetch reactions with batching (supabase limit)
       const allReactions: Reaction[] = [];
       for (let i = 0; i < msgIds.length; i += 500) {
         const batch = msgIds.slice(i, i + 500);
@@ -49,7 +48,6 @@ export const useReactions = (conversationId: string | null) => {
         if (data) allReactions.push(...(data as Reaction[]));
       }
 
-      // Fetch profiles for reactors
       const userIds = [...new Set(allReactions.map((r) => r.user_id))];
       const profileMap: Record<string, { display_name: string; avatar_url: string | null }> = {};
       if (userIds.length > 0) {
@@ -60,7 +58,6 @@ export const useReactions = (conversationId: string | null) => {
         profiles?.forEach((p) => { profileMap[p.id] = { display_name: p.display_name, avatar_url: p.avatar_url }; });
       }
 
-      // Group by message_id
       const byMessage: Record<string, GroupedReaction[]> = {};
       for (const r of allReactions) {
         if (!byMessage[r.message_id]) byMessage[r.message_id] = [];
@@ -87,7 +84,6 @@ export const useReactions = (conversationId: string | null) => {
     enabled: !!conversationId && !!user,
   });
 
-  // Realtime subscription
   useEffect(() => {
     if (!conversationId) return;
     const channel = supabase
@@ -97,20 +93,20 @@ export const useReactions = (conversationId: string | null) => {
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [conversationId, qc]);
+  }, [conversationId, qc, supabase]);
 
   return query.data ?? {};
 };
 
 export const useToggleReaction = () => {
   const { user } = useAuth();
+  const supabase = useSupabase();
   const qc = useQueryClient();
 
   return useMutation({
     mutationFn: async ({ messageId, emoji, conversationId }: { messageId: string; emoji: string; conversationId: string }) => {
       if (!user) throw new Error("Not authenticated");
 
-      // Check if reaction exists
       const { data: existing } = await supabase
         .from("message_reactions")
         .select("id")
