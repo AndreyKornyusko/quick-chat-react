@@ -30,6 +30,7 @@ interface ChatSidebarProps {
 export const ChatSidebar = ({ activeConversationId, onSelectConversation }: ChatSidebarProps) => {
   const { data: conversations, isLoading } = useConversations();
   const { user, signOut } = useAuth();
+  const config = useConfig();
   const { theme, setTheme, resolved } = useTheme();
   const [search, setSearch] = useState("");
   const [contactsOpen, setContactsOpen] = useState(false);
