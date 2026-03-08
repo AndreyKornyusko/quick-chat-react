@@ -26,9 +26,9 @@ const ResetPassword = () => {
     setLoading(true);
     const { error } = await supabase.auth.updateUser({ password });
     if (error) {
-      toast({ title: "Ошибка", description: error.message, variant: "destructive" });
+      toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
-      toast({ title: "Пароль обновлён" });
+      toast({ title: "Password updated" });
       navigate("/");
     }
     setLoading(false);
@@ -37,15 +37,15 @@ const ResetPassword = () => {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
-        <CardHeader><CardTitle>Новый пароль</CardTitle></CardHeader>
+        <CardHeader><CardTitle>New Password</CardTitle></CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label>Новый пароль</Label>
+              <Label>New password</Label>
               <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} minLength={6} required />
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Сохранение..." : "Сохранить пароль"}
+              {loading ? "Saving..." : "Save Password"}
             </Button>
           </form>
         </CardContent>
