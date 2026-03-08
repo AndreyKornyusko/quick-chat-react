@@ -41,7 +41,7 @@ const ResetPassword = () => {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label>Новый пароль</Label>
+              <Label>New password</Label>
               <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} minLength={6} required />
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
