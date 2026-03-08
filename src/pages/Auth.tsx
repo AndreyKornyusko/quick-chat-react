@@ -133,8 +133,8 @@ const Auth = () => {
           <div className="flex justify-center gap-4 text-sm">
             {mode === "login" ? (
               <>
-                <button className="text-primary hover:underline" onClick={() => setMode("signup")}>Регистрация</button>
-                <button className="text-muted-foreground hover:underline" onClick={() => setMode("forgot")}>Забыли пароль?</button>
+                <button className="text-primary hover:underline" onClick={() => setMode("signup")}>Sign Up</button>
+                <button className="text-muted-foreground hover:underline" onClick={() => setMode("forgot")}>Forgot password?</button>
               </>
             ) : (
               <button className="text-primary hover:underline" onClick={() => setMode("login")}>Уже есть аккаунт? Войти</button>
