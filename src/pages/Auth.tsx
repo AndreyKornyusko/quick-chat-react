@@ -75,14 +75,14 @@ const Auth = () => {
             <MessageCircle className="h-7 w-7 text-primary-foreground" />
           </div>
           <CardTitle className="text-2xl">
-            {mode === "login" ? "Вход" : mode === "signup" ? "Регистрация" : "Сброс пароля"}
+            {mode === "login" ? "Sign In" : mode === "signup" ? "Sign Up" : "Reset Password"}
           </CardTitle>
           <CardDescription>
             {mode === "login"
-              ? "Войдите в свой аккаунт"
+              ? "Sign in to your account"
               : mode === "signup"
-              ? "Создайте новый аккаунт"
-              : "Введите email для сброса пароля"}
+              ? "Create a new account"
+              : "Enter your email to reset password"}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
