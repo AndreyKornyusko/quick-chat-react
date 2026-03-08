@@ -101,9 +101,11 @@ export const ChatSidebar = ({ activeConversationId, onSelectConversation }: Chat
           <Button variant="ghost" size="icon" onClick={() => setContactsOpen(true)}>
             <UserPlus className="h-5 w-5" />
           </Button>
-          <Button variant="ghost" size="icon" onClick={() => setGroupOpen(true)}>
-            <Users className="h-5 w-5" />
-          </Button>
+          {config.showGroups && (
+            <Button variant="ghost" size="icon" onClick={() => setGroupOpen(true)}>
+              <Users className="h-5 w-5" />
+            </Button>
+          )}
           <Button variant="ghost" size="icon" onClick={() => setTheme(resolved === "dark" ? "light" : "dark")}>
             {resolved === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           </Button>
