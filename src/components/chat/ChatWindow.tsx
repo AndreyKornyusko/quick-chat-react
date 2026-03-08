@@ -16,7 +16,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { VoiceRecorder } from "./VoiceRecorder";
 import { VoiceMessagePlayer } from "./VoiceMessagePlayer";
 import { format, isToday, isYesterday } from "date-fns";
-import { supabase } from "@/integrations/supabase/client";
+import { useSupabase } from "@/lib/QuickChatProvider";
 import { useToast } from "@/hooks/use-toast";
 import { ForwardDialog } from "./ForwardDialog";
 import { MediaLightbox } from "./MediaLightbox";
