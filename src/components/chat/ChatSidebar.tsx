@@ -189,7 +189,8 @@ const ConversationItem = ({
   const name = getConversationName(conv, currentUserId);
   const avatar = getConversationAvatar(conv, currentUserId);
   const other = conv.members.find((m) => m.user_id !== currentUserId);
-  const isOnline = conv.type === "private" && other?.profile?.is_online;
+  const showOnline = useConfig().showOnlineStatus;
+  const isOnline = showOnline && conv.type === "private" && other?.profile?.is_online;
 
   const lastMsgText = conv.last_message
     ? conv.last_message.type !== "text"
