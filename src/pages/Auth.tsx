@@ -22,7 +22,7 @@ const Auth = () => {
     e.preventDefault();
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) toast({ title: "Ошибка входа", description: error.message, variant: "destructive" });
+    if (error) toast({ title: "Login error", description: error.message, variant: "destructive" });
     setLoading(false);
   };
 
