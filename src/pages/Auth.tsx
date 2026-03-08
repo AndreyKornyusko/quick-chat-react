@@ -38,9 +38,9 @@ const Auth = () => {
       },
     });
     if (error) {
-      toast({ title: "Ошибка регистрации", description: error.message, variant: "destructive" });
+      toast({ title: "Sign up error", description: error.message, variant: "destructive" });
     } else {
-      toast({ title: "Проверьте почту", description: "Мы отправили ссылку для подтверждения" });
+      toast({ title: "Check your email", description: "We sent a confirmation link" });
       setMode("login");
     }
     setLoading(false);
