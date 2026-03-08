@@ -89,7 +89,7 @@ const Auth = () => {
           <form onSubmit={mode === "login" ? handleLogin : mode === "signup" ? handleSignup : handleForgot} className="space-y-4">
             {mode === "signup" && (
               <div className="space-y-2">
-                <Label htmlFor="name">Имя</Label>
+                <Label htmlFor="name">Name</Label>
                 <div className="relative">
                   <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input id="name" placeholder="Ваше имя" value={displayName} onChange={(e) => setDisplayName(e.target.value)} className="pl-9" required />
