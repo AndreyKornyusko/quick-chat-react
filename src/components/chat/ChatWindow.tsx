@@ -698,9 +698,11 @@ export const ChatWindow = ({ conversationId, onBack }: ChatWindowProps) => {
       {/* Input - floating on mobile */}
       <div className="flex items-center gap-2 px-3 py-2 md:border-t md:border-border md:bg-background md:px-4 md:py-3 md:relative fixed bottom-0 left-0 right-0 z-40 md:bottom-auto md:left-auto md:right-auto md:z-auto">
         <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileUpload} multiple accept="image/*,video/*,application/*" />
-        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full md:rounded-md shrink-0" onClick={() => fileInputRef.current?.click()}>
-          <Paperclip className="h-5 w-5" />
-        </Button>
+        {config.allowFileUpload && (
+          <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full md:rounded-md shrink-0" onClick={() => fileInputRef.current?.click()}>
+            <Paperclip className="h-5 w-5" />
+          </Button>
+        )}
         <Input
           placeholder="Message..."
           value={text}
