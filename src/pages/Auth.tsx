@@ -53,9 +53,9 @@ const Auth = () => {
       redirectTo: `${window.location.origin}/reset-password`,
     });
     if (error) {
-      toast({ title: "Ошибка", description: error.message, variant: "destructive" });
+      toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
-      toast({ title: "Проверьте почту", description: "Ссылка для сброса пароля отправлена" });
+      toast({ title: "Check your email", description: "Password reset link sent" });
     }
     setLoading(false);
   };
