@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useConversations, ConversationWithDetails } from "@/hooks/useConversations";
 import { useAuth } from "@/contexts/AuthContext";
+import { useConfig } from "@/lib/QuickChatProvider";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useProfile } from "@/hooks/useProfile";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
