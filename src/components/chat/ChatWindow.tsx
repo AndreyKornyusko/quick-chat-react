@@ -17,6 +17,7 @@ import { VoiceRecorder } from "./VoiceRecorder";
 import { VoiceMessagePlayer } from "./VoiceMessagePlayer";
 import { format, isToday, isYesterday } from "date-fns";
 import { useSupabase } from "@/lib/QuickChatProvider";
+import { useConfig } from "@/lib/QuickChatProvider";
 import { useToast } from "@/hooks/use-toast";
 import { ForwardDialog } from "./ForwardDialog";
 import { MediaLightbox } from "./MediaLightbox";
