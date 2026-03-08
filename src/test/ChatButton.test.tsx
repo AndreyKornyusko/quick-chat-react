@@ -99,7 +99,7 @@ describe("ChatButton", () => {
   it("applies custom badge color", () => {
     render(<ChatButton {...defaultProps} unreadCount={3} badgeColor="#ff0000" />);
     const badge = screen.getByText("3");
-    expect(badge.style.backgroundColor).toBe("#ff0000");
+    expect(badge.style.backgroundColor).toBe("rgb(255, 0, 0)");
   });
 
   it("renders custom icon", () => {

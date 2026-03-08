@@ -44,7 +44,9 @@ describe("PropsTable", () => {
 
   it("renders Required badge for required props", () => {
     render(<PropsTable title="Props" props={mockProps} />);
-    expect(screen.getByText("Required")).toBeInTheDocument();
+    const requiredBadges = screen.getAllByText("Required");
+    // One in the header, one as a badge
+    expect(requiredBadges.length).toBeGreaterThanOrEqual(2);
   });
 
   it("renders Optional badge for optional props", () => {
