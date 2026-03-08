@@ -92,7 +92,7 @@ const Auth = () => {
                 <Label htmlFor="name">Name</Label>
                 <div className="relative">
                   <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input id="name" placeholder="Ваше имя" value={displayName} onChange={(e) => setDisplayName(e.target.value)} className="pl-9" required />
+                  <Input id="name" placeholder="Your name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} className="pl-9" required />
                 </div>
               </div>
             )}
