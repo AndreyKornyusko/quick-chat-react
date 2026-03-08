@@ -63,6 +63,10 @@ export const ChatSidebar = ({ activeConversationId, onSelectConversation }: Chat
   const filtered = useMemo(() => {
     if (!conversations) return [];
     let list = conversations;
+    // Filter out group conversations if showGroups is disabled
+    if (!config.showGroups) {
+      list = list.filter((c) => c.type !== "group");
+    }
     if (search) {
       const q = search.toLowerCase();
       list = list.filter((c) => {
