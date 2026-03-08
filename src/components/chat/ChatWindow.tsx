@@ -34,6 +34,7 @@ interface ChatWindowProps {
 }
 
 export const ChatWindow = ({ conversationId, onBack }: ChatWindowProps) => {
+  const supabase = useSupabase();
   const { user } = useAuth();
   const { messages, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useMessages(conversationId);
   const unreadIds = useUnreadMessageIds(conversationId);

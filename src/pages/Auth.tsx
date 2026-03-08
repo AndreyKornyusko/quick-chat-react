@@ -10,6 +10,7 @@ import { MessageCircle, Mail, Lock, User } from "lucide-react";
 type Mode = "login" | "signup" | "forgot";
 
 const Auth = () => {
+  const supabase = useSupabase();
   const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

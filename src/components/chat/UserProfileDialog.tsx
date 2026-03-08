@@ -21,6 +21,7 @@ interface UserProfileDialogProps {
 }
 
 export const UserProfileDialog = ({ open, onOpenChange, userId }: UserProfileDialogProps) => {
+  const supabase = useSupabase();
   const { user } = useAuth();
   const qc = useQueryClient();
   const { toast } = useToast();
