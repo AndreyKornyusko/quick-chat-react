@@ -113,7 +113,7 @@ const Auth = () => {
               </div>
             )}
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Загрузка..." : mode === "login" ? "Войти" : mode === "signup" ? "Зарегистрироваться" : "Отправить ссылку"}
+              {loading ? "Loading..." : mode === "login" ? "Sign In" : mode === "signup" ? "Sign Up" : "Send Reset Link"}
             </Button>
           </form>
 
