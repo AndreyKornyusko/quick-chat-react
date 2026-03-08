@@ -746,7 +746,13 @@ export const ChatWindow = ({ conversationId, onBack }: ChatWindowProps) => {
             </div>
             {/* Mobile: show voice recorder */}
             <div className="md:hidden">
-              <VoiceRecorder onSend={handleVoiceSend} />
+              {config.allowVoiceMessages ? (
+                <VoiceRecorder onSend={handleVoiceSend} />
+              ) : (
+                <Button size="icon" className="h-9 w-9 rounded-full shrink-0" onClick={handleSend} disabled>
+                  <Send className="h-4 w-4" />
+                </Button>
+              )}
             </div>
           </>
         )}
