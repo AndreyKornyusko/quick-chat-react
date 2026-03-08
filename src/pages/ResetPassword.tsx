@@ -45,7 +45,7 @@ const ResetPassword = () => {
               <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} minLength={6} required />
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Сохранение..." : "Сохранить пароль"}
+              {loading ? "Saving..." : "Save Password"}
             </Button>
           </form>
         </CardContent>

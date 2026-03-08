@@ -137,7 +137,7 @@ const Auth = () => {
                 <button className="text-muted-foreground hover:underline" onClick={() => setMode("forgot")}>Forgot password?</button>
               </>
             ) : (
-              <button className="text-primary hover:underline" onClick={() => setMode("login")}>Уже есть аккаунт? Войти</button>
+              <button className="text-primary hover:underline" onClick={() => setMode("login")}>Already have an account? Sign In</button>
             )}
           </div>
         </CardContent>
