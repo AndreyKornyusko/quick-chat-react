@@ -1,16 +1,46 @@
 {
-  "name": "vite_react_shadcn_ts",
-  "private": true,
-  "version": "0.0.0",
+  "name": "quick-chat-react",
+  "version": "1.0.0",
+  "description": "A drop-in, full-featured chat component for React powered by Supabase",
   "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./style.css": "./dist/style.css"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "keywords": [
+    "react",
+    "chat",
+    "supabase",
+    "real-time",
+    "messaging",
+    "component"
+  ],
+  "license": "MIT",
+  "peerDependencies": {
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "@supabase/supabase-js": "^2.0.0"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:lib": "vite build --config vite.config.lib.ts",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "prepublishOnly": "npm run build:lib"
   },
   "dependencies": {
     "@emoji-mart/data": "^1.2.1",

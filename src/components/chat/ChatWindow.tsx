@@ -17,6 +17,7 @@ import { VoiceRecorder } from "./VoiceRecorder";
 import { VoiceMessagePlayer } from "./VoiceMessagePlayer";
 import { format, isToday, isYesterday } from "date-fns";
 import { useSupabase } from "@/lib/QuickChatProvider";
+import { useConfig } from "@/lib/QuickChatProvider";
 import { useToast } from "@/hooks/use-toast";
 import { ForwardDialog } from "./ForwardDialog";
 import { MediaLightbox } from "./MediaLightbox";
@@ -35,6 +36,7 @@ interface ChatWindowProps {
 
 export const ChatWindow = ({ conversationId, onBack }: ChatWindowProps) => {
   const supabase = useSupabase();
+  const config = useConfig();
   const { user } = useAuth();
   const { messages, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useMessages(conversationId);
   const unreadIds = useUnreadMessageIds(conversationId);
@@ -696,9 +698,11 @@ export const ChatWindow = ({ conversationId, onBack }: ChatWindowProps) => {
       {/* Input - floating on mobile */}
       <div className="flex items-center gap-2 px-3 py-2 md:border-t md:border-border md:bg-background md:px-4 md:py-3 md:relative fixed bottom-0 left-0 right-0 z-40 md:bottom-auto md:left-auto md:right-auto md:z-auto">
         <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileUpload} multiple accept="image/*,video/*,application/*" />
-        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full md:rounded-md shrink-0" onClick={() => fileInputRef.current?.click()}>
-          <Paperclip className="h-5 w-5" />
-        </Button>
+        {config.allowFileUpload && (
+          <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full md:rounded-md shrink-0" onClick={() => fileInputRef.current?.click()}>
+            <Paperclip className="h-5 w-5" />
+          </Button>
+        )}
         <Input
           placeholder="Message..."
           value={text}
@@ -742,7 +746,13 @@ export const ChatWindow = ({ conversationId, onBack }: ChatWindowProps) => {
             </div>
             {/* Mobile: show voice recorder */}
             <div className="md:hidden">
-              <VoiceRecorder onSend={handleVoiceSend} />
+              {config.allowVoiceMessages ? (
+                <VoiceRecorder onSend={handleVoiceSend} />
+              ) : (
+                <Button size="icon" className="h-9 w-9 rounded-full shrink-0" onClick={handleSend} disabled>
+                  <Send className="h-4 w-4" />
+                </Button>
+              )}
             </div>
           </>
         )}

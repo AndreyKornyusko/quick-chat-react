@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useConversations, ConversationWithDetails } from "@/hooks/useConversations";
 import { useAuth } from "@/contexts/AuthContext";
+import { useConfig } from "@/lib/QuickChatProvider";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useProfile } from "@/hooks/useProfile";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -29,6 +30,7 @@ interface ChatSidebarProps {
 export const ChatSidebar = ({ activeConversationId, onSelectConversation }: ChatSidebarProps) => {
   const { data: conversations, isLoading } = useConversations();
   const { user, signOut } = useAuth();
+  const config = useConfig();
   const { theme, setTheme, resolved } = useTheme();
   const [search, setSearch] = useState("");
   const [contactsOpen, setContactsOpen] = useState(false);
@@ -61,6 +63,10 @@ export const ChatSidebar = ({ activeConversationId, onSelectConversation }: Chat
   const filtered = useMemo(() => {
     if (!conversations) return [];
     let list = conversations;
+    // Filter out group conversations if showGroups is disabled
+    if (!config.showGroups) {
+      list = list.filter((c) => c.type !== "group");
+    }
     if (search) {
       const q = search.toLowerCase();
       list = list.filter((c) => {
@@ -95,9 +101,11 @@ export const ChatSidebar = ({ activeConversationId, onSelectConversation }: Chat
           <Button variant="ghost" size="icon" onClick={() => setContactsOpen(true)}>
             <UserPlus className="h-5 w-5" />
           </Button>
-          <Button variant="ghost" size="icon" onClick={() => setGroupOpen(true)}>
-            <Users className="h-5 w-5" />
-          </Button>
+          {config.showGroups && (
+            <Button variant="ghost" size="icon" onClick={() => setGroupOpen(true)}>
+              <Users className="h-5 w-5" />
+            </Button>
+          )}
           <Button variant="ghost" size="icon" onClick={() => setTheme(resolved === "dark" ? "light" : "dark")}>
             {resolved === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           </Button>
@@ -181,7 +189,8 @@ const ConversationItem = ({
   const name = getConversationName(conv, currentUserId);
   const avatar = getConversationAvatar(conv, currentUserId);
   const other = conv.members.find((m) => m.user_id !== currentUserId);
-  const isOnline = conv.type === "private" && other?.profile?.is_online;
+  const showOnline = useConfig().showOnlineStatus;
+  const isOnline = showOnline && conv.type === "private" && other?.profile?.is_online;
 
   const lastMsgText = conv.last_message
     ? conv.last_message.type !== "text"
