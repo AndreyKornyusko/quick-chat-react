@@ -48,7 +48,7 @@ export function Hero({ onOpenChat, isLoggedIn }: HeroProps) {
           <pre>
             <code>
               <span className="hero__code-keyword">import</span>
-              {" { QuickChat } "}
+              {" { QuickChat, ChatButton } "}
               <span className="hero__code-keyword">from</span>
               {' "quick-chat-react";\n\n'}
               <span className="hero__code-comment">{"// User already logged in? Pass their data directly.\n"}</span>
@@ -70,6 +70,26 @@ export function Hero({ onOpenChat, isLoggedIn }: HeroProps) {
               <span className="hero__code-prop">userData</span>
               {"={"}
               <span className="hero__code-string">currentUser</span>
+              {"}\n/>\n\n"}
+              <span className="hero__code-comment">{"// Optional: floating button with unread badge.\n"}</span>
+              {"<"}
+              <span className="hero__code-component">ChatButton</span>
+              {"\n  "}
+              <span className="hero__code-prop">supabaseUrl</span>
+              {"={"}
+              <span className="hero__code-string">url</span>
+              {"}\n  "}
+              <span className="hero__code-prop">supabaseAnonKey</span>
+              {"={"}
+              <span className="hero__code-string">key</span>
+              {"}\n  "}
+              <span className="hero__code-prop">userData</span>
+              {"={"}
+              <span className="hero__code-string">currentUser</span>
+              {"}\n  "}
+              <span className="hero__code-prop">onClick</span>
+              {"={"}
+              <span className="hero__code-comment">{"() => setOpen(true)"}</span>
               {"}\n/>"}
             </code>
           </pre>
