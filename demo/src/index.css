@@ -157,15 +157,3 @@ h1, h2, h3, h4 {
   padding: 1rem;
   backdrop-filter: blur(2px);
 }
-
-/*
- * Radix UI portals (Dialog, Sheet, Popover, etc.) render directly on document.body
- * with Tailwind z-50 (= 50). They must be above the chat modal overlay (z-index 1000).
- */
-[data-radix-dialog-overlay],
-[data-radix-dialog-content],
-[data-radix-alert-dialog-overlay],
-[data-radix-alert-dialog-content],
-[data-radix-popper-content-wrapper] {
-  z-index: 1100 !important;
-}

@@ -29,7 +29,7 @@ interface ChatSidebarProps {
 
 export const ChatSidebar = ({ activeConversationId, onSelectConversation }: ChatSidebarProps) => {
   const { data: conversations, isLoading } = useConversations();
-  const { user, signOut } = useAuth();
+  const { user, signOut, authMode } = useAuth();
   const config = useConfig();
   const { theme, setTheme, resolved } = useTheme();
   const [search, setSearch] = useState("");
@@ -109,9 +109,11 @@ export const ChatSidebar = ({ activeConversationId, onSelectConversation }: Chat
           <Button variant="ghost" size="icon" onClick={() => setTheme(resolved === "dark" ? "light" : "dark")}>
             {resolved === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           </Button>
-          <Button variant="ghost" size="icon" onClick={signOut}>
-            <LogOut className="h-5 w-5" />
-          </Button>
+          {authMode === "built-in" && (
+            <Button variant="ghost" size="icon" onClick={signOut}>
+              <LogOut className="h-5 w-5" />
+            </Button>
+          )}
         </div>
       </div>
 

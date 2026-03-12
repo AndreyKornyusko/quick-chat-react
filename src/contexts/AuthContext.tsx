@@ -7,6 +7,7 @@ interface AuthContextType {
   session: Session | null;
   user: User | null;
   loading: boolean;
+  authMode: "built-in" | "external";
   signOut: () => Promise<void>;
 }
 
@@ -14,6 +15,7 @@ const AuthContext = createContext<AuthContextType>({
   session: null,
   user: null,
   loading: true,
+  authMode: "built-in",
   signOut: async () => {},
 });
 
@@ -62,14 +64,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children, authMode =
     } as unknown as User;
 
     return (
-      <AuthContext.Provider value={{ session: null, user: fakeUser, loading: false, signOut }}>
+      <AuthContext.Provider value={{ session: null, user: fakeUser, loading: false, authMode: "external", signOut }}>
         {children}
       </AuthContext.Provider>
     );
   }
 
   return (
-    <AuthContext.Provider value={{ session, user: session?.user ?? null, loading, signOut }}>
+    <AuthContext.Provider value={{ session, user: session?.user ?? null, loading, authMode: "built-in", signOut }}>
       {children}
     </AuthContext.Provider>
   );
