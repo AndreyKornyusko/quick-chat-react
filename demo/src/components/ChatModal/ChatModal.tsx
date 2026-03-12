@@ -1,12 +1,11 @@
 import { useEffect } from "react";
-import { QuickChat } from "quick-chat-react";
-import type { UserData } from "quick-chat-react";
+import { QuickChat, type UserData } from "quick-chat-react";
 import "./ChatModal.css";
 
 interface ChatModalProps {
   supabaseUrl: string;
   supabaseAnonKey: string;
-  currentUser: UserData | null;
+  currentUser?: UserData | null;
   onClose: () => void;
 }
 
@@ -37,23 +36,29 @@ export function ChatModal({ supabaseUrl, supabaseAnonKey, currentUser, onClose }
             ✕
           </button>
         </div>
-        {/*
-         * Two auth flows:
-         * - currentUser present → authMode="external": chat opens immediately, no login needed
-         * - currentUser null    → authMode="built-in": chat renders its own login screen
-         *
-         * key={...} forces a clean remount when the user switches identity
-         */}
         <div className="chat-modal__content">
-          <QuickChat
-            supabaseUrl={supabaseUrl}
-            supabaseAnonKey={supabaseAnonKey}
-            authMode={currentUser ? "external" : "built-in"}
-            userData={currentUser ?? undefined}
-            key={currentUser?.id ?? "guest"}
-            height="100%"
-            width="100%"
-          />
+          {currentUser ? (
+            // External auth mode: demo user is already logged in, pass their data.
+            // In production, userData.accessToken should be a real Supabase JWT
+            // from your backend (e.g. supabase.auth.admin.generateLink()).
+            <QuickChat
+              supabaseUrl={supabaseUrl}
+              supabaseAnonKey={supabaseAnonKey}
+              authMode="external"
+              userData={currentUser}
+              height="100%"
+              width="100%"
+            />
+          ) : (
+            // Built-in auth mode: QuickChat renders its own login/signup UI.
+            <QuickChat
+              supabaseUrl={supabaseUrl}
+              supabaseAnonKey={supabaseAnonKey}
+              authMode="built-in"
+              height="100%"
+              width="100%"
+            />
+          )}
         </div>
       </div>
     </div>

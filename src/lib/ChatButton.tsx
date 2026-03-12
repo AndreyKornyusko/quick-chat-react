@@ -16,6 +16,11 @@ export const ChatButton = ({
   badgeColor,
   icon,
   floating = true,
+  className,
+  style,
+  buttonColor,
+  iconColor,
+  label = "Open chat",
 }: ChatButtonProps) => {
   const s = sizeMap[size];
   const posClass = position === "bottom-left" ? "bottom-4 left-4" : "bottom-4 right-4";
@@ -26,11 +31,18 @@ export const ChatButton = ({
     if (href && typeof window !== "undefined") { window.location.href = href; }
   };
 
+  const buttonStyle = {
+    ...(buttonColor ? { backgroundColor: buttonColor } : {}),
+    ...(iconColor ? { color: iconColor } : {}),
+    ...style,
+  };
+
   return (
     <button
       onClick={handleClick}
-      className={`${floatingClass} ${s.button} rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:scale-105 transition-transform cursor-pointer`}
-      aria-label="Open chat"
+      className={`${floatingClass} ${s.button} rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:scale-105 transition-transform cursor-pointer${className ? ` ${className}` : ""}`}
+      style={buttonStyle}
+      aria-label={label}
     >
       {icon || <MessageCircle className={s.icon} />}
       {unreadCount > 0 && (

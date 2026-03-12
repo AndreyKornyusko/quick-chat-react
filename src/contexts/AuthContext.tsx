@@ -11,6 +11,58 @@ interface AuthContextType {
   signOut: () => Promise<void>;
 }
 
+interface ExternalAuthProviderProps {
+  children: React.ReactNode;
+  userData?: UserData;
+  supabase: ReturnType<typeof useSupabase>;
+}
+
+const ExternalAuthProvider: React.FC<ExternalAuthProviderProps> = ({ children, userData, supabase }) => {
+  const [session, setSession] = useState<Session | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [sessionError, setSessionError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!userData) { setLoading(false); return; }
+    if (!userData.accessToken) {
+      console.warn(
+        "[QuickChat] authMode='external' — userData.accessToken is missing. " +
+        "auth.uid() will be NULL and DB/storage operations will fail. " +
+        "Generate a Supabase JWT via the Admin API for full functionality."
+      );
+      setLoading(false);
+      return;
+    }
+    supabase.auth
+      .setSession({ access_token: userData.accessToken, refresh_token: "" })
+      .then(({ data, error }) => {
+        if (error) { setSessionError(error.message); console.error("[QuickChat] Failed to set Supabase session:", error.message); }
+        else { setSession(data.session); }
+      })
+      .finally(() => setLoading(false));
+  }, [userData?.accessToken, supabase]);
+
+  if (sessionError) {
+    return (
+      <div style={{ padding: 16, color: "red", fontFamily: "sans-serif" }}>
+        <strong>QuickChat config error:</strong> {sessionError}
+      </div>
+    );
+  }
+
+  const fakeUser = userData
+    ? ({ id: userData.id, email: userData.email ?? "", user_metadata: { display_name: userData.name, avatar_url: userData.avatar } } as unknown as User)
+    : null;
+
+  const signOut = async () => { await supabase.auth.signOut(); };
+
+  return (
+    <AuthContext.Provider value={{ session, user: fakeUser, loading, authMode: "external", signOut }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
 const AuthContext = createContext<AuthContextType>({
   session: null,
   user: null,
@@ -52,22 +104,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children, authMode =
     await supabase.auth.signOut();
   };
 
-  // External auth mode: create a fake user object from userData
-  if (authMode === "external" && userData) {
-    const fakeUser = {
-      id: userData.id,
-      email: userData.email ?? "",
-      user_metadata: {
-        display_name: userData.name,
-        avatar_url: userData.avatar,
-      },
-    } as unknown as User;
-
-    return (
-      <AuthContext.Provider value={{ session: null, user: fakeUser, loading: false, authMode: "external", signOut }}>
-        {children}
-      </AuthContext.Provider>
-    );
+  // External auth mode: delegate to ExternalAuthProvider which calls setSession
+  if (authMode === "external") {
+    return <ExternalAuthProvider userData={userData} supabase={supabase}>{children}</ExternalAuthProvider>;
   }
 
   return (

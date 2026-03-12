@@ -68,7 +68,7 @@ const Auth = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
+    <div className="flex h-full min-h-0 items-center justify-center bg-background p-4 overflow-y-auto">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="mx-auto mb-2 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary">
@@ -117,6 +117,7 @@ const Auth = () => {
             </Button>
           </form>
 
+          {/* Google OAuth — uncomment when OAuth is configured in Supabase dashboard
           {mode === "login" && (
             <>
               <div className="relative">
@@ -129,6 +130,7 @@ const Auth = () => {
               </Button>
             </>
           )}
+          */}
 
           <div className="flex justify-center gap-4 text-sm">
             {mode === "login" ? (

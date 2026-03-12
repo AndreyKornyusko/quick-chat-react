@@ -274,7 +274,7 @@ export const ChatWindow = ({ conversationId, onBack }: ChatWindowProps) => {
 
     for (const file of fileList) {
       const ext = file.name.split(".").pop();
-      const path = `${conversationId}/${crypto.randomUUID()}.${ext}`;
+      const path = `${user.id}/${conversationId}/${crypto.randomUUID()}.${ext}`;
       const { error } = await supabase.storage.from("chat-media").upload(path, file);
       if (error) {
         toast({ title: "Upload error", description: `${file.name}: ${error.message}`, variant: "destructive" });
@@ -298,7 +298,7 @@ export const ChatWindow = ({ conversationId, onBack }: ChatWindowProps) => {
   const handleVoiceSend = async (blob: Blob, durationMs: number) => {
     if (!conversationId || !user) return;
     const ext = blob.type.includes("webm") ? "webm" : "ogg";
-    const path = `${conversationId}/${crypto.randomUUID()}.${ext}`;
+    const path = `${user.id}/${conversationId}/${crypto.randomUUID()}.${ext}`;
     const { error } = await supabase.storage.from("chat-media").upload(path, blob, { contentType: blob.type });
     if (error) {
       toast({ title: "Upload error", description: error.message, variant: "destructive" });

@@ -82,12 +82,24 @@ export const UserProfileDialog = ({ open, onOpenChange, userId }: UserProfileDia
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
+
+    const ALLOWED: Record<string, string> = {
+      "image/jpeg": "jpg",
+      "image/png": "png",
+      "image/gif": "gif",
+      "image/webp": "webp",
+    };
+    if (!ALLOWED[file.type]) {
+      toast({ title: "Invalid file type", description: "Only JPEG, PNG, GIF, and WebP are allowed.", variant: "destructive" });
+      e.target.value = "";
+      return;
+    }
+
+    const ext = ALLOWED[file.type]; // derive from MIME, not filename
+    const path = `${user.id}/avatar.${ext}`;
+
     setUploading(true);
     try {
-      const ext = file.name.split(".").pop();
-      const path = `${user.id}/avatar.${ext}`;
-
-      // Remove old avatar if exists
       await supabase.storage.from("avatars").remove([path]);
 
       const { error: uploadError } = await supabase.storage.from("avatars").upload(path, file, { upsert: true });
@@ -97,7 +109,7 @@ export const UserProfileDialog = ({ open, onOpenChange, userId }: UserProfileDia
 
       const { error: updateError } = await supabase
         .from("profiles")
-        .update({ avatar_url: urlData.publicUrl + `?t=${Date.now()}` })
+        .update({ avatar_url: urlData.publicUrl })
         .eq("id", user.id);
       if (updateError) throw updateError;
 
@@ -166,6 +178,7 @@ export const UserProfileDialog = ({ open, onOpenChange, userId }: UserProfileDia
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
                   placeholder="Your name"
+                  maxLength={100}
                 />
               </div>
               <div className="space-y-2">
@@ -176,6 +189,7 @@ export const UserProfileDialog = ({ open, onOpenChange, userId }: UserProfileDia
                   onChange={(e) => setBio(e.target.value)}
                   placeholder="Tell about yourself..."
                   rows={3}
+                  maxLength={500}
                 />
               </div>
               <div className="flex gap-2 justify-end">

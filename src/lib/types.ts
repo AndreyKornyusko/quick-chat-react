@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { CSSProperties, ReactNode } from "react";
 
 export interface UserData {
   id: string;
@@ -6,6 +6,12 @@ export interface UserData {
   avatar?: string;
   description?: string;
   email?: string;
+  /**
+   * Supabase JWT access token for this user.
+   * Required when authMode is 'external' — without it auth.uid() is NULL and all DB/storage operations fail.
+   * Generate via Supabase Admin API: supabase.auth.admin.generateLink() or a custom JWT signed with your project's JWT secret.
+   */
+  accessToken?: string;
 }
 
 export interface QuickChatConfig {
@@ -69,8 +75,18 @@ export interface ChatButtonProps {
   unreadCount?: number;
   /** Button size variant */
   size?: "sm" | "md" | "lg";
-  /** Badge background color */
+  /** Badge background color (CSS color value) */
   badgeColor?: string;
   /** Custom icon element */
   icon?: ReactNode;
+  /** Additional CSS class names appended to the button element */
+  className?: string;
+  /** Inline styles applied to the button element */
+  style?: CSSProperties;
+  /** Button background color — overrides the default primary color (CSS color value) */
+  buttonColor?: string;
+  /** Icon / foreground color — overrides the default primary-foreground color (CSS color value) */
+  iconColor?: string;
+  /** Accessible label for the button (default: "Open chat") */
+  label?: string;
 }
