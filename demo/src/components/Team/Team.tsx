@@ -4,13 +4,13 @@ import "./Team.css";
 interface TeamProps {
   users: UserData[];
   currentUser: UserData | null;
-  onLogin: (user: UserData) => void;
+  onLogin: (user: UserData) => Promise<void> | void;
   onOpenChat: () => void;
 }
 
 export function Team({ users, currentUser, onLogin, onOpenChat }: TeamProps) {
-  const handleSelectUser = (user: UserData) => {
-    onLogin(user);
+  const handleSelectUser = async (user: UserData) => {
+    await onLogin(user);
     onOpenChat();
   };
 
@@ -25,7 +25,7 @@ export function Team({ users, currentUser, onLogin, onOpenChat }: TeamProps) {
 
         <div className="team__grid">
           {users.map((user) => {
-            const isActive = currentUser?.id === user.id;
+            const isActive = currentUser?.email === user.email;
             return (
               <div
                 key={user.id}

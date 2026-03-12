@@ -23,8 +23,10 @@ import "quick-chat-react/style.css";
 ## Supabase setup
 
 1. Create a [Supabase](https://supabase.com) project.
-2. Run the migrations from `/supabase/migrations/` in order against your project.
+2. Run the SQL migration files from [`/supabase/migrations/`](./supabase/migrations) **in filename order** using the Supabase SQL Editor or CLI. These create all required tables, RLS policies, storage buckets, realtime subscriptions, and the trigger that auto-creates a `profiles` row when a new auth user signs up.
 3. Copy your **Project URL** and **anon/public key** from Project Settings → API.
+4. **(Recommended)** Disable email confirmation so users (and provisioned demo/test accounts) can log in immediately:
+   > Supabase Dashboard → Authentication → Email → turn off **"Confirm email"**
 
 ---
 
@@ -145,7 +147,35 @@ function getChatToken(userId: string) {
 }
 ```
 
-> **Important:** Each user must have a corresponding row in the `profiles` table with a matching `id`. In built-in mode this is created automatically by a database trigger. In external mode you are responsible for creating and maintaining profile rows when users are provisioned.
+#### Provisioning users in Supabase
+
+Every user of your app needs a corresponding Supabase auth account so that:
+- `auth.uid()` resolves to their UUID in RLS policies (enables all reads/writes)
+- A `profiles` row exists — required for contact search and chat
+
+The database trigger creates the `profiles` row automatically when you create a Supabase auth user. Do this **server-side** when the user first signs up in your app:
+
+```ts
+// Node.js / backend — use the service role key, never expose it on the frontend
+const supabaseAdmin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
+  auth: { autoRefreshToken: false, persistSession: false },
+});
+
+const { data } = await supabaseAdmin.auth.admin.createUser({
+  email: user.email,
+  password: someSecurePassword,  // or omit and use generateLink instead
+  email_confirm: true,           // skip confirmation email
+  user_metadata: {
+    display_name: user.name,     // used for contact search
+    avatar_url: user.avatarUrl,
+  },
+});
+
+// Store data.user.id in your own DB — this is the UUID you pass as userData.id
+const supabaseUserId = data.user.id;
+```
+
+> **Important:** The `display_name` in `user_metadata` is what populates `profiles.display_name`. This is the field other users search by in the Contacts dialog. Make sure it is set at creation time.
 
 #### Token expiry
 
@@ -186,6 +216,22 @@ For external auth, pass `userData` (without `accessToken`) to fetch the unread c
   onClick={() => setIsChatOpen(true)}
 />
 ```
+
+---
+
+## Contact search
+
+The chat sidebar includes a **Contacts** button (person+ icon) with two tabs:
+
+- **My Contacts** — existing contacts with "Start chat" and "Remove" actions
+- **Search** — type 2+ characters to find users by display name, then add them or start a chat directly
+
+For a user to appear in search results they must have a `profiles` row in your Supabase database. This row is created automatically by a trigger whenever a Supabase auth user is created.
+
+| Auth mode | What you need to do |
+|-----------|---------------------|
+| `built-in` | Nothing — profiles are created when users sign up through the built-in UI |
+| `external` | Provision each user via the Admin API (`createUser`) as shown above — the trigger fires and creates the profile automatically |
 
 ---
 

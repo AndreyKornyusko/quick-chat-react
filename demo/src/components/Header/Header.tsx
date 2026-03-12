@@ -9,7 +9,7 @@ interface HeaderProps {
   supabaseAnonKey: string;
   currentUser: UserData | null;
   onOpenChat: () => void;
-  onLogin: (user: UserData) => void;
+  onLogin: (user: UserData) => Promise<void> | void;
   onLogout: () => void;
   users: UserData[];
 }

@@ -1,25 +1,58 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { UserData } from "quick-chat-react";
+import { supabase } from "../lib/supabase";
+import { MOCK_USERS } from "../data/mockUsers";
+
+// Shared password for all demo users. Never used in production.
+const DEMO_PASSWORD = "demo-quickchat-2024";
 
 export function useDemoAuth() {
-  const [currentUser, setCurrentUser] = useState<UserData | null>(() => {
-    try {
-      const raw = localStorage.getItem("demo_user");
-      return raw ? (JSON.parse(raw) as UserData) : null;
-    } catch {
-      return null;
+  const [currentUser, setCurrentUser] = useState<UserData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  // On mount, restore an existing Supabase session (persisted by the SDK).
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        const mockUser = MOCK_USERS.find((u) => u.email === session.user.email);
+        if (mockUser) {
+          setCurrentUser({
+            ...mockUser,
+            id: session.user.id,
+            accessToken: session.access_token,
+          });
+        }
+      }
+      setLoading(false);
+    });
+  }, []);
+
+  const login = async (user: UserData) => {
+    // Users are pre-created by the seed script (npm run seed).
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: user.email!,
+      password: DEMO_PASSWORD,
+    });
+
+    if (error || !data.session) {
+      console.error(
+        "[Demo] Login failed:", error?.message ?? "No session.",
+        "Run `npm run seed` in the demo folder to provision demo users."
+      );
+      return;
     }
-  });
 
-  const login = (user: UserData) => {
-    setCurrentUser(user);
-    localStorage.setItem("demo_user", JSON.stringify(user));
+    setCurrentUser({
+      ...user,
+      id: data.session.user.id,
+      accessToken: data.session.access_token,
+    });
   };
 
-  const logout = () => {
+  const logout = async () => {
+    await supabase.auth.signOut();
     setCurrentUser(null);
-    localStorage.removeItem("demo_user");
   };
 
-  return { currentUser, login, logout };
+  return { currentUser, login, logout, loading };
 }

@@ -28,7 +28,7 @@ export function Hero({ onOpenChat, isLoggedIn }: HeroProps) {
           </button>
           <a
             className="btn-outline"
-            href="https://github.com/andreikornusko/quick-chat-react"
+            href="https://github.com/AndreyKornyusko/quick-chat-react"
             target="_blank"
             rel="noopener noreferrer"
           >

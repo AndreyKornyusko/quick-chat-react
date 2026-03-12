@@ -5,12 +5,13 @@ import "./UserSwitcher.css";
 interface UserSwitcherProps {
   currentUser: UserData | null;
   users: UserData[];
-  onLogin: (user: UserData) => void;
+  onLogin: (user: UserData) => Promise<void> | void;
   onLogout: () => void;
 }
 
 export function UserSwitcher({ currentUser, users, onLogin, onLogout }: UserSwitcherProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [loggingInEmail, setLoggingInEmail] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Close on click outside
@@ -56,9 +57,12 @@ export function UserSwitcher({ currentUser, users, onLogin, onLogout }: UserSwit
               key={user.id}
               className="user-switcher__option"
               role="option"
-              aria-selected={currentUser?.id === user.id}
-              onClick={() => {
-                onLogin(user);
+              aria-selected={currentUser?.email === user.email}
+              disabled={loggingInEmail !== null}
+              onClick={async () => {
+                setLoggingInEmail(user.email!);
+                await onLogin(user);
+                setLoggingInEmail(null);
                 setIsOpen(false);
               }}
             >
@@ -71,9 +75,11 @@ export function UserSwitcher({ currentUser, users, onLogin, onLogout }: UserSwit
                 <strong className="user-switcher__option-name">{user.name}</strong>
                 <small className="user-switcher__option-role">{user.description}</small>
               </span>
-              {currentUser?.id === user.id && (
+              {loggingInEmail === user.email ? (
+                <span className="user-switcher__check">...</span>
+              ) : currentUser?.email === user.email ? (
                 <span className="user-switcher__check">✓</span>
-              )}
+              ) : null}
             </button>
           ))}
           {currentUser && (

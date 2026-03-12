@@ -418,7 +418,7 @@ const Demo = () => {
         <footer className="border-t border-border pt-8 pb-12 text-center text-sm text-muted-foreground space-y-2">
           <p className="font-semibold text-foreground">quick-chat-react</p>
           <p>Built with React, Tailwind CSS, and Supabase</p>
-          <a href="https://github.com" className="inline-flex items-center gap-1 text-primary hover:underline">
+          <a href="https://github.com/AndreyKornyusko/quick-chat-react" className="inline-flex items-center gap-1 text-primary hover:underline">
             View on GitHub <ExternalLink className="h-3 w-3" />
           </a>
         </footer>
