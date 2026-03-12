@@ -15,9 +15,11 @@ export const ChatButton = ({
   size = "md",
   badgeColor,
   icon,
+  floating = true,
 }: ChatButtonProps) => {
   const s = sizeMap[size];
   const posClass = position === "bottom-left" ? "bottom-4 left-4" : "bottom-4 right-4";
+  const floatingClass = floating ? `fixed ${posClass} z-50` : "relative";
 
   const handleClick = () => {
     if (onClick) { onClick(); return; }
@@ -27,7 +29,7 @@ export const ChatButton = ({
   return (
     <button
       onClick={handleClick}
-      className={`fixed ${posClass} ${s.button} z-50 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:scale-105 transition-transform cursor-pointer`}
+      className={`${floatingClass} ${s.button} rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:scale-105 transition-transform cursor-pointer`}
       aria-label="Open chat"
     >
       {icon || <MessageCircle className={s.icon} />}

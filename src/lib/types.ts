@@ -61,8 +61,10 @@ export interface ChatButtonProps {
   onClick?: () => void;
   /** URL to navigate to on click */
   href?: string;
-  /** Fixed position on screen */
+  /** Fixed position on screen (only used when floating=true) */
   position?: "bottom-right" | "bottom-left";
+  /** Render as a fixed floating button (default: true). Set false to use inline inside a layout. */
+  floating?: boolean;
   /** Manually override unread count badge */
   unreadCount?: number;
   /** Button size variant */
