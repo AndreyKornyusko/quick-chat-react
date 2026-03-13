@@ -1,0 +1,43 @@
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react-swc";
+import path from "path";
+import dts from "vite-plugin-dts";
+
+export default defineConfig({
+  plugins: [react(), dts({ include: ["src/lib"], tsconfigPath: "./tsconfig.lib.json" })],
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
+  },
+  build: {
+    lib: {
+      entry: path.resolve(__dirname, "src/lib/index.ts"),
+      name: "QuickChatReact",
+      formats: ["es", "cjs"],
+      fileName: (format) => `index.${format === "es" ? "js" : "cjs"}`,
+    },
+    rollupOptions: {
+      external: [
+        "react",
+        "react-dom",
+        "react/jsx-runtime",
+        "@supabase/supabase-js",
+        "@tanstack/react-query",
+        "@emoji-mart/react",
+        "@emoji-mart/data",
+        "emoji-mart",
+      ],
+      output: {
+        globals: {
+          react: "React",
+          "react-dom": "ReactDOM",
+          "@supabase/supabase-js": "supabase",
+          "@tanstack/react-query": "ReactQuery",
+        },
+      },
+    },
+    cssCodeSplit: false,
+    outDir: "dist",
+  },
+});

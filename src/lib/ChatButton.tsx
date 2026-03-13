@@ -1,0 +1,150 @@
+import { MessageCircle } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import type { ChatButtonProps } from "./types";
+
+const sizeMap = {
+  sm: { button: "h-10 w-10", icon: "h-5 w-5", badge: "h-4 w-4 text-[9px] -top-0.5 -right-0.5" },
+  md: { button: "h-14 w-14", icon: "h-6 w-6", badge: "h-5 w-5 text-[10px] -top-1 -right-1" },
+  lg: { button: "h-16 w-16", icon: "h-7 w-7", badge: "h-6 w-6 text-[11px] -top-1 -right-1" },
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function fetchUnreadCount(supabase: SupabaseClient<any>, userId: string): Promise<number> {
+  const { data: convMembers } = await supabase
+    .from("conversation_members")
+    .select("conversation_id")
+    .eq("user_id", userId);
+
+  const convIds = (convMembers ?? []).map((cm: { conversation_id: string }) => cm.conversation_id);
+  if (convIds.length === 0) return 0;
+
+  // Batch: fetch all messages from others across all conversations
+  const { data: msgs } = await supabase
+    .from("messages")
+    .select("id, conversation_id")
+    .in("conversation_id", convIds)
+    .eq("is_deleted", false)
+    .neq("sender_id", userId);
+
+  if (!msgs || msgs.length === 0) return 0;
+
+  const msgIds = msgs.map((m: { id: string; conversation_id: string }) => m.id);
+
+  // Batch reads in chunks of 500 to stay within URL limits
+  const readMsgIds = new Set<string>();
+  for (let i = 0; i < msgIds.length; i += 500) {
+    const chunk = msgIds.slice(i, i + 500);
+    const { data: reads } = await supabase
+      .from("message_reads")
+      .select("message_id")
+      .eq("user_id", userId)
+      .in("message_id", chunk);
+    (reads ?? []).forEach((r: { message_id: string }) => readMsgIds.add(r.message_id));
+  }
+
+  // Count conversations that have at least one unread message
+  const convsWithUnread = new Set(
+    msgs
+      .filter((m: { id: string; conversation_id: string }) => !readMsgIds.has(m.id))
+      .map((m: { id: string; conversation_id: string }) => m.conversation_id)
+  );
+  return convsWithUnread.size;
+}
+
+export const ChatButton = ({
+  supabaseUrl,
+  supabaseAnonKey,
+  userData,
+  onClick,
+  href,
+  position = "bottom-right",
+  unreadCount: unreadCountProp,
+  size = "md",
+  badgeColor,
+  icon,
+  floating = true,
+  className,
+  style,
+  buttonColor,
+  iconColor,
+  label = "Open chat",
+}: ChatButtonProps) => {
+  const [fetchedUnreadCount, setFetchedUnreadCount] = useState(0);
+
+  const unreadCount = unreadCountProp !== undefined ? unreadCountProp : fetchedUnreadCount;
+
+  // Stable client — recreated only if the project URL or key changes, never on user switches.
+  // This prevents duplicate WebSocket connections when tokens are refreshed.
+  const supabase = useMemo(() => {
+    if (!supabaseUrl || !supabaseAnonKey) return null;
+    return createClient(supabaseUrl, supabaseAnonKey);
+  }, [supabaseUrl, supabaseAnonKey]);
+
+  useEffect(() => {
+    if (unreadCountProp !== undefined || !userData?.id || !supabase) return;
+
+    const refresh = async () => {
+      const count = await fetchUnreadCount(supabase, userData.id);
+      setFetchedUnreadCount(count);
+    };
+
+    const init = async () => {
+      if (userData.accessToken && userData.refreshToken) {
+        await supabase.auth.setSession({
+          access_token: userData.accessToken,
+          refresh_token: userData.refreshToken,
+        });
+      }
+      await refresh();
+    };
+
+    init();
+
+    const channel = supabase
+      .channel("chat-button-unread")
+      .on("postgres_changes", { event: "*", schema: "public", table: "messages" }, refresh)
+      .on("postgres_changes", { event: "*", schema: "public", table: "message_reads" }, refresh)
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [supabase, userData?.id, userData?.accessToken, userData?.refreshToken, unreadCountProp]);
+
+  const s = sizeMap[size];
+  const posClass = position === "bottom-left" ? "bottom-4 left-4" : "bottom-4 right-4";
+  const floatingClass = floating ? `fixed ${posClass} z-50` : "relative";
+
+  const handleClick = () => {
+    if (onClick) { onClick(); return; }
+    if (href && typeof window !== "undefined") {
+      if (/^(https?:\/\/|\/)/.test(href)) {
+        window.location.href = href;
+      }
+    }
+  };
+
+  const buttonStyle = {
+    ...(buttonColor ? { backgroundColor: buttonColor } : {}),
+    ...(iconColor ? { color: iconColor } : {}),
+    ...style,
+  };
+
+  return (
+    <button
+      onClick={handleClick}
+      className={`${floatingClass} ${s.button} rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:scale-105 transition-transform cursor-pointer${className ? ` ${className}` : ""}`}
+      style={buttonStyle}
+      aria-label={label}
+    >
+      {icon || <MessageCircle className={s.icon} />}
+      {unreadCount > 0 && (
+        <span
+          className={`absolute ${s.badge} rounded-full font-bold flex items-center justify-center`}
+          style={{ backgroundColor: badgeColor || "hsl(var(--destructive))", color: "hsl(var(--destructive-foreground))" }}
+        >
+          {unreadCount > 99 ? "99+" : unreadCount}
+        </span>
+      )}
+    </button>
+  );
+};
