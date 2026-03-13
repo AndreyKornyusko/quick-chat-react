@@ -1,4 +1,6 @@
 import { MessageCircle } from "lucide-react";
+import { useState, useEffect } from "react";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { ChatButtonProps } from "./types";
 
 const sizeMap = {
@@ -7,11 +9,47 @@ const sizeMap = {
   lg: { button: "h-16 w-16", icon: "h-7 w-7", badge: "h-6 w-6 text-[11px] -top-1 -right-1" },
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function fetchUnreadCount(supabase: SupabaseClient<any>, userId: string): Promise<number> {
+  const { data: convMembers } = await supabase
+    .from("conversation_members")
+    .select("conversation_id")
+    .eq("user_id", userId);
+
+  const convIds = (convMembers ?? []).map((cm: { conversation_id: string }) => cm.conversation_id);
+  if (convIds.length === 0) return 0;
+
+  let total = 0;
+  for (const convId of convIds) {
+    const { data: msgs } = await supabase
+      .from("messages")
+      .select("id")
+      .eq("conversation_id", convId)
+      .neq("sender_id", userId);
+
+    const msgIds = (msgs ?? []).map((m: { id: string }) => m.id);
+    if (msgIds.length === 0) continue;
+
+    const { data: reads } = await supabase
+      .from("message_reads")
+      .select("message_id")
+      .eq("user_id", userId)
+      .in("message_id", msgIds);
+
+    total += msgIds.length - ((reads ?? []).length);
+  }
+
+  return total;
+}
+
 export const ChatButton = ({
+  supabaseUrl,
+  supabaseAnonKey,
+  userData,
   onClick,
   href,
   position = "bottom-right",
-  unreadCount = 0,
+  unreadCount: unreadCountProp,
   size = "md",
   badgeColor,
   icon,
@@ -22,6 +60,43 @@ export const ChatButton = ({
   iconColor,
   label = "Open chat",
 }: ChatButtonProps) => {
+  const [fetchedUnreadCount, setFetchedUnreadCount] = useState(0);
+
+  const unreadCount = unreadCountProp !== undefined ? unreadCountProp : fetchedUnreadCount;
+
+  useEffect(() => {
+    if (unreadCountProp !== undefined || !userData?.id || !supabaseUrl || !supabaseAnonKey) return;
+
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+    const init = async () => {
+      if (userData.accessToken && userData.refreshToken) {
+        await supabase.auth.setSession({
+          access_token: userData.accessToken,
+          refresh_token: userData.refreshToken,
+        });
+      }
+      const count = await fetchUnreadCount(supabase, userData.id);
+      setFetchedUnreadCount(count);
+    };
+
+    init();
+
+    const channel = supabase
+      .channel("chat-button-unread")
+      .on("postgres_changes", { event: "*", schema: "public", table: "messages" }, async () => {
+        const count = await fetchUnreadCount(supabase, userData.id);
+        setFetchedUnreadCount(count);
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "message_reads" }, async () => {
+        const count = await fetchUnreadCount(supabase, userData.id);
+        setFetchedUnreadCount(count);
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [userData?.id, userData?.accessToken, supabaseUrl, supabaseAnonKey, unreadCountProp]);
+
   const s = sizeMap[size];
   const posClass = position === "bottom-left" ? "bottom-4 left-4" : "bottom-4 right-4";
   const floatingClass = floating ? `fixed ${posClass} z-50` : "relative";

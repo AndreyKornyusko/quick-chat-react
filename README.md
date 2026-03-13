@@ -118,27 +118,28 @@ Full guide with token refresh, OAuth setup, and profile sync: [docs/external-aut
 
 A floating or inline button that shows the unread message count badge. Useful as an entry point to open a chat modal.
 
+Pass `userData` with session tokens and the badge fetches and updates the unread count automatically via Supabase Realtime. `accessToken` and `refreshToken` are both required — Supabase Row Level Security rejects queries without a valid session.
+
 ```tsx
 import { ChatButton } from "quick-chat-react";
+
+// Get the session from your own Supabase client after sign-in
+const { data: { session } } = await supabase.auth.getSession();
 
 <ChatButton
   supabaseUrl={import.meta.env.VITE_SUPABASE_URL}
   supabaseAnonKey={import.meta.env.VITE_SUPABASE_ANON_KEY}
-  onClick={() => setIsChatOpen(true)}
-  position="bottom-right"   // default
-/>
-```
-
-For external auth, pass `userData` (without `accessToken`) to fetch the unread count:
-
-```tsx
-<ChatButton
-  supabaseUrl={...}
-  supabaseAnonKey={...}
-  userData={{ id: user.uid, name: user.displayName }}
+  userData={{
+    id: session.user.id,
+    name: session.user.user_metadata.display_name ?? session.user.email,
+    accessToken: session.access_token,    // required — authenticates the Supabase query
+    refreshToken: session.refresh_token,  // required — prevents session expiry after 1 h
+  }}
   onClick={() => setIsChatOpen(true)}
 />
 ```
+
+Full usage and customization guide: [docs/ChatButton.md](docs/ChatButton.md)
 
 ---
 

@@ -1,7 +1,7 @@
 {
   "name": "quick-chat-react",
   "version": "1.0.0",
-  "description": "A drop-in, full-featured chat component for React powered by Supabase",
+  "description": "Drop-in React chat component backed by Supabase. Real-time messaging, group chats, voice messages, file uploads, emoji reactions, read receipts, and unread badge — all via props.",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -23,8 +23,18 @@
     "chat",
     "supabase",
     "real-time",
+    "realtime",
     "messaging",
-    "component"
+    "chat-component",
+    "group-chat",
+    "voice-message",
+    "file-upload",
+    "emoji-reactions",
+    "read-receipts",
+    "unread-badge",
+    "chat-ui",
+    "lovable",
+    "typescript"
   ],
   "license": "MIT",
   "peerDependencies": {
