@@ -157,3 +157,9 @@ h1, h2, h3, h4 {
   padding: 1rem;
   backdrop-filter: blur(2px);
 }
+
+/* Ensure Radix UI portals (dropdowns, context menus, tooltips) rendered by the
+   embedded QuickChat library appear above the modal overlay (z-index: 1000). */
+[data-radix-popper-content-wrapper] {
+  z-index: 1001 !important;
+}

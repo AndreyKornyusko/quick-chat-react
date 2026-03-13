@@ -1,4 +1,4 @@
-import { useMemo, useEffect } from "react";
+import { useMemo } from "react";
 import { QuickChatProvider } from "./QuickChatProvider";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
@@ -31,7 +31,10 @@ const QuickChatInner = ({
 
   return (
     <div style={{ height, width }}>
-      <ChatApp />
+      <ChatApp
+        onUnreadCountChange={onUnreadCountChange}
+        onConversationSelect={onConversationSelect}
+      />
     </div>
   );
 };

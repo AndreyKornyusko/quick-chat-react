@@ -62,6 +62,7 @@ export const useConversations = () => {
           .from("messages")
           .select("content, type, created_at, sender_id")
           .eq("conversation_id", conv.id)
+          .eq("is_deleted", false)
           .order("created_at", { ascending: false })
           .limit(1)
           .maybeSingle();
@@ -70,6 +71,7 @@ export const useConversations = () => {
           .from("messages")
           .select("id")
           .eq("conversation_id", conv.id)
+          .eq("is_deleted", false)
           .neq("sender_id", user.id);
 
         const msgIds = allMsgs?.map((m) => m.id) ?? [];

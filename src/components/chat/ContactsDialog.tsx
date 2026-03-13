@@ -40,7 +40,7 @@ export const ContactsDialog = ({ open, onOpenChange, onStartChat }: ContactsDial
       onOpenChange(false);
       onStartChat(convId);
     } catch (err: any) {
-      console.error("handleStartChat error:", err);
+      console.error("handleStartChat error:", err instanceof Error ? err.message : String(err));
       toast({ title: "Error creating chat", description: err?.message || "Unknown error", variant: "destructive" });
     }
   };

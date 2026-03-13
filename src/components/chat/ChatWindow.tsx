@@ -216,8 +216,14 @@ export const ChatWindow = ({ conversationId, onBack }: ChatWindowProps) => {
     return () => document.removeEventListener("mousedown", handler);
   }, [showEmojiPicker]);
 
+  const MAX_MESSAGE_LENGTH = 5000;
+
   const handleSend = async () => {
     if (!conversationId || !text.trim()) return;
+    if (text.length > MAX_MESSAGE_LENGTH) {
+      toast({ title: "Message too long", description: `Messages must be ${MAX_MESSAGE_LENGTH} characters or fewer`, variant: "destructive" });
+      return;
+    }
     if (editingMsg) {
       editMessage.mutate({ id: editingMsg.id, content: text, conversationId });
       setEditingMsg(null);
@@ -263,6 +269,16 @@ export const ChatWindow = ({ conversationId, onBack }: ChatWindowProps) => {
     });
   };
 
+  const ALLOWED_EXTENSIONS: Record<string, string> = {
+    jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", gif: "image/gif",
+    webp: "image/webp", mp4: "video/mp4", mov: "video/quicktime",
+    pdf: "application/pdf", txt: "text/plain",
+    doc: "application/msword",
+    docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    zip: "application/zip",
+  };
+  const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 MB
+
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0 || !conversationId || !user) return;
@@ -273,16 +289,25 @@ export const ChatWindow = ({ conversationId, onBack }: ChatWindowProps) => {
     }
 
     for (const file of fileList) {
-      const ext = file.name.split(".").pop();
-      const path = `${user.id}/${conversationId}/${crypto.randomUUID()}.${ext}`;
-      const { error } = await supabase.storage.from("chat-media").upload(path, file);
+      if (file.size > MAX_FILE_SIZE) {
+        toast({ title: "File too large", description: `${file.name} exceeds the 50 MB limit`, variant: "destructive" });
+        continue;
+      }
+      const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
+      const contentType = ALLOWED_EXTENSIONS[ext];
+      if (!contentType) {
+        toast({ title: "File type not allowed", description: `${file.name} is not a supported file type`, variant: "destructive" });
+        continue;
+      }
+      const path = `${user.id}/${conversationId}/${crypto.randomUUID()}`;
+      const { error } = await supabase.storage.from("chat-media").upload(path, file, { contentType });
       if (error) {
         toast({ title: "Upload error", description: `${file.name}: ${error.message}`, variant: "destructive" });
         continue;
       }
       const { data: urlData } = supabase.storage.from("chat-media").getPublicUrl(path);
-      const isImage = file.type.startsWith("image/");
-      const isVideo = file.type.startsWith("video/");
+      const isImage = contentType.startsWith("image/");
+      const isVideo = contentType.startsWith("video/");
       sendMessage.mutate({
         conversation_id: conversationId,
         content: file.name,
@@ -452,7 +477,7 @@ export const ChatWindow = ({ conversationId, onBack }: ChatWindowProps) => {
         </Avatar>
         <div className="flex-1 min-w-0">
           <h2
-            className="font-semibold cursor-pointer hover:underline truncate"
+            className="font-semibold text-foreground cursor-pointer hover:underline truncate"
             onClick={() => {
               if (conversation?.type === "private" && otherUser) {
                 setProfileUserId(otherUser.user_id);

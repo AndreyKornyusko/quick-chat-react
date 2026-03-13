@@ -23,12 +23,17 @@ export default defineConfig({
         "react-dom",
         "react/jsx-runtime",
         "@supabase/supabase-js",
+        "@tanstack/react-query",
+        "@emoji-mart/react",
+        "@emoji-mart/data",
+        "emoji-mart",
       ],
       output: {
         globals: {
           react: "React",
           "react-dom": "ReactDOM",
           "@supabase/supabase-js": "supabase",
+          "@tanstack/react-query": "ReactQuery",
         },
       },
     },

@@ -1,5 +1,5 @@
 import { MessageCircle } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { ChatButtonProps } from "./types";
 
@@ -25,6 +25,7 @@ async function fetchUnreadCount(supabase: SupabaseClient<any>, userId: string): 
       .from("messages")
       .select("id")
       .eq("conversation_id", convId)
+      .eq("is_deleted", false)
       .neq("sender_id", userId);
 
     const msgIds = (msgs ?? []).map((m: { id: string }) => m.id);
@@ -64,10 +65,20 @@ export const ChatButton = ({
 
   const unreadCount = unreadCountProp !== undefined ? unreadCountProp : fetchedUnreadCount;
 
-  useEffect(() => {
-    if (unreadCountProp !== undefined || !userData?.id || !supabaseUrl || !supabaseAnonKey) return;
+  // Stable client — recreated only if the project URL or key changes, never on user switches.
+  // This prevents duplicate WebSocket connections when tokens are refreshed.
+  const supabase = useMemo(() => {
+    if (!supabaseUrl || !supabaseAnonKey) return null;
+    return createClient(supabaseUrl, supabaseAnonKey);
+  }, [supabaseUrl, supabaseAnonKey]);
 
-    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+  useEffect(() => {
+    if (unreadCountProp !== undefined || !userData?.id || !supabase) return;
+
+    const refresh = async () => {
+      const count = await fetchUnreadCount(supabase, userData.id);
+      setFetchedUnreadCount(count);
+    };
 
     const init = async () => {
       if (userData.accessToken && userData.refreshToken) {
@@ -76,26 +87,19 @@ export const ChatButton = ({
           refresh_token: userData.refreshToken,
         });
       }
-      const count = await fetchUnreadCount(supabase, userData.id);
-      setFetchedUnreadCount(count);
+      await refresh();
     };
 
     init();
 
     const channel = supabase
       .channel("chat-button-unread")
-      .on("postgres_changes", { event: "*", schema: "public", table: "messages" }, async () => {
-        const count = await fetchUnreadCount(supabase, userData.id);
-        setFetchedUnreadCount(count);
-      })
-      .on("postgres_changes", { event: "*", schema: "public", table: "message_reads" }, async () => {
-        const count = await fetchUnreadCount(supabase, userData.id);
-        setFetchedUnreadCount(count);
-      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "messages" }, refresh)
+      .on("postgres_changes", { event: "*", schema: "public", table: "message_reads" }, refresh)
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, [userData?.id, userData?.accessToken, supabaseUrl, supabaseAnonKey, unreadCountProp]);
+  }, [supabase, userData?.id, userData?.accessToken, userData?.refreshToken, unreadCountProp]);
 
   const s = sizeMap[size];
   const posClass = position === "bottom-left" ? "bottom-4 left-4" : "bottom-4 right-4";
@@ -103,7 +107,11 @@ export const ChatButton = ({
 
   const handleClick = () => {
     if (onClick) { onClick(); return; }
-    if (href && typeof window !== "undefined") { window.location.href = href; }
+    if (href && typeof window !== "undefined") {
+      if (/^(https?:\/\/|\/)/.test(href)) {
+        window.location.href = href;
+      }
+    }
   };
 
   const buttonStyle = {

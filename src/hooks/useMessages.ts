@@ -34,6 +34,7 @@ export const useMessages = (conversationId: string | null) => {
         .from("messages")
         .select("*")
         .eq("conversation_id", conversationId)
+        .eq("is_deleted", false)
         .order("created_at", { ascending: false })
         .range(from, to);
       if (error) throw error;
@@ -146,6 +147,7 @@ export const useUnreadMessageIds = (conversationId: string | null) => {
         .from("messages")
         .select("id")
         .eq("conversation_id", conversationId)
+        .eq("is_deleted", false)
         .neq("sender_id", user.id);
 
       if (!msgs || msgs.length === 0) return new Set<string>();

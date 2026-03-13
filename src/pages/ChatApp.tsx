@@ -3,13 +3,19 @@ import { ChatSidebar } from "@/components/chat/ChatSidebar";
 import { ChatWindow } from "@/components/chat/ChatWindow";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-const ChatApp = () => {
+interface ChatAppProps {
+  onUnreadCountChange?: (count: number) => void;
+  onConversationSelect?: (id: string) => void;
+}
+
+const ChatApp = ({ onUnreadCountChange, onConversationSelect }: ChatAppProps = {}) => {
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const isMobile = useIsMobile();
   const [showSidebar, setShowSidebar] = useState(true);
 
   const handleSelectConversation = (id: string) => {
     setActiveConversationId(id);
+    onConversationSelect?.(id);
     if (isMobile) setShowSidebar(false);
   };
 
@@ -25,6 +31,7 @@ const ChatApp = () => {
           <ChatSidebar
             activeConversationId={activeConversationId}
             onSelectConversation={handleSelectConversation}
+            onUnreadCountChange={onUnreadCountChange}
           />
         </div>
       )}

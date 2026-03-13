@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useConversations, ConversationWithDetails } from "@/hooks/useConversations";
 import { useAuth } from "@/contexts/AuthContext";
 import { useConfig } from "@/lib/QuickChatProvider";
@@ -25,9 +25,10 @@ import { toast } from "sonner";
 interface ChatSidebarProps {
   activeConversationId: string | null;
   onSelectConversation: (id: string) => void;
+  onUnreadCountChange?: (count: number) => void;
 }
 
-export const ChatSidebar = ({ activeConversationId, onSelectConversation }: ChatSidebarProps) => {
+export const ChatSidebar = ({ activeConversationId, onSelectConversation, onUnreadCountChange }: ChatSidebarProps) => {
   const { data: conversations, isLoading } = useConversations();
   const { user, signOut, authMode } = useAuth();
   const config = useConfig();
@@ -60,6 +61,10 @@ export const ChatSidebar = ({ activeConversationId, onSelectConversation }: Chat
 
   const totalUnread = useMemo(() => conversations?.reduce((sum, c) => sum + c.unread_count, 0) ?? 0, [conversations]);
 
+  useEffect(() => {
+    onUnreadCountChange?.(totalUnread);
+  }, [totalUnread, onUnreadCountChange]);
+
   const filtered = useMemo(() => {
     if (!conversations) return [];
     let list = conversations;
@@ -90,7 +95,7 @@ export const ChatSidebar = ({ activeConversationId, onSelectConversation }: Chat
             <AvatarImage src={profile?.avatar_url ?? undefined} />
             <AvatarFallback className="text-xs">{(profile?.display_name ?? "?").slice(0, 2).toUpperCase()}</AvatarFallback>
           </Avatar>
-          <h1 className="text-lg font-bold">Chats</h1>
+          <h1 className="text-lg font-bold text-foreground">Chats</h1>
           {totalUnread > 0 && (
             <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-medium text-primary-foreground">
               {totalUnread}
