@@ -2,6 +2,8 @@
 
 Drop-in real-time chat for React apps built on **[Supabase](https://supabase.com)**.
 
+**[Live Demo →](https://quick-chat-react.vercel.app)**
+
 > **Requires Supabase.** If your project uses Firebase, Auth0, or a custom backend, this library is not the right fit.
 
 **Features:** real-time messaging · group conversations · voice messages · file & photo uploads · emoji reactions · read receipts · online status · contact management
