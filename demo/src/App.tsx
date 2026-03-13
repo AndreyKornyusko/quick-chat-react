@@ -51,6 +51,7 @@ export default function App() {
         onTabChange={setActiveTab}
         theme={theme}
         onToggleTheme={toggleTheme}
+        
       />
 
       {activeTab === "home" ? (
