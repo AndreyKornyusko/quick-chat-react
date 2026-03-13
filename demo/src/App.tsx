@@ -1,5 +1,5 @@
 import "quick-chat-react/style.css";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useDemoAuth } from "./hooks/useDemoAuth";
 import { MOCK_USERS } from "./data/mockUsers";
 import { Header } from "./components/Header/Header";
@@ -16,10 +16,26 @@ const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 
 type Tab = "home" | "chat" | "docs";
 
+type Theme = "light" | "dark";
+
+function getInitialTheme(): Theme {
+  const stored = localStorage.getItem("theme") as Theme | null;
+  if (stored === "light" || stored === "dark") return stored;
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+
 export default function App() {
   const { currentUser, login, logout } = useDemoAuth();
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>("home");
+  const [theme, setTheme] = useState<Theme>(getInitialTheme);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", theme === "dark");
+    localStorage.setItem("theme", theme);
+  }, [theme]);
+
+  const toggleTheme = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
 
   return (
     <>
@@ -33,6 +49,8 @@ export default function App() {
         users={MOCK_USERS}
         activeTab={activeTab}
         onTabChange={setActiveTab}
+        theme={theme}
+        onToggleTheme={toggleTheme}
       />
 
       {activeTab === "home" ? (
