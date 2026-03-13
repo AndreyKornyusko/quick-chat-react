@@ -19,28 +19,37 @@ async function fetchUnreadCount(supabase: SupabaseClient<any>, userId: string): 
   const convIds = (convMembers ?? []).map((cm: { conversation_id: string }) => cm.conversation_id);
   if (convIds.length === 0) return 0;
 
-  let total = 0;
-  for (const convId of convIds) {
-    const { data: msgs } = await supabase
-      .from("messages")
-      .select("id")
-      .eq("conversation_id", convId)
-      .eq("is_deleted", false)
-      .neq("sender_id", userId);
+  // Batch: fetch all messages from others across all conversations
+  const { data: msgs } = await supabase
+    .from("messages")
+    .select("id, conversation_id")
+    .in("conversation_id", convIds)
+    .eq("is_deleted", false)
+    .neq("sender_id", userId);
 
-    const msgIds = (msgs ?? []).map((m: { id: string }) => m.id);
-    if (msgIds.length === 0) continue;
+  if (!msgs || msgs.length === 0) return 0;
 
+  const msgIds = msgs.map((m: { id: string; conversation_id: string }) => m.id);
+
+  // Batch reads in chunks of 500 to stay within URL limits
+  const readMsgIds = new Set<string>();
+  for (let i = 0; i < msgIds.length; i += 500) {
+    const chunk = msgIds.slice(i, i + 500);
     const { data: reads } = await supabase
       .from("message_reads")
       .select("message_id")
       .eq("user_id", userId)
-      .in("message_id", msgIds);
-
-    total += msgIds.length - ((reads ?? []).length);
+      .in("message_id", chunk);
+    (reads ?? []).forEach((r: { message_id: string }) => readMsgIds.add(r.message_id));
   }
 
-  return total;
+  // Count conversations that have at least one unread message
+  const convsWithUnread = new Set(
+    msgs
+      .filter((m: { id: string; conversation_id: string }) => !readMsgIds.has(m.id))
+      .map((m: { id: string; conversation_id: string }) => m.conversation_id)
+  );
+  return convsWithUnread.size;
 }
 
 export const ChatButton = ({

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { ChatButton } from "quick-chat-react";
+import { ChatButton, UserAvatar } from "quick-chat-react";
 import type { UserData } from "quick-chat-react";
 import { UserSwitcher } from "../UserSwitcher/UserSwitcher";
 import "./Header.css";
@@ -12,12 +12,13 @@ interface HeaderProps {
   onLogin: (user: UserData) => Promise<void> | void;
   onLogout: () => void;
   users: UserData[];
+  activeTab: "home" | "chat" | "docs";
+  onTabChange: (tab: "home" | "chat" | "docs") => void;
 }
 
-export function Header({ supabaseUrl, supabaseAnonKey, currentUser, onOpenChat, onLogin, onLogout, users }: HeaderProps) {
+export function Header({ supabaseUrl, supabaseAnonKey, currentUser, onOpenChat, onLogin, onLogout, users, activeTab, onTabChange }: HeaderProps) {
   const headerRef = useRef<HTMLElement>(null);
 
-  // Add shadow when page is scrolled
   useEffect(() => {
     const handler = () => {
       headerRef.current?.classList.toggle("header--scrolled", window.scrollY > 4);
@@ -29,13 +30,35 @@ export function Header({ supabaseUrl, supabaseAnonKey, currentUser, onOpenChat, 
   return (
     <header className="header" ref={headerRef}>
       <div className="container header__inner">
-        <a href="#" className="header__logo">
+        <button className="header__logo" onClick={() => onTabChange("home")}>
            Demo Startup
-        </a>
+        </button>
 
         <nav className="header__nav">
-          <a href="#features">Features</a>
-          <a href="#team">Team</a>
+          <button
+            className={`header__tab${activeTab === "home" ? " header__tab--active" : ""}`}
+            onClick={() => onTabChange("home")}
+          >
+            Home
+          </button>
+          <button
+            className={`header__tab${activeTab === "chat" ? " header__tab--active" : ""}`}
+            onClick={() => onTabChange("chat")}
+          >
+            Chat
+          </button>
+          <button
+            className={`header__tab${activeTab === "docs" ? " header__tab--active" : ""}`}
+            onClick={() => onTabChange("docs")}
+          >
+            Docs
+          </button>
+          {activeTab === "home" && (
+            <>
+              <a href="#features">Features</a>
+              <a href="#team">Team</a>
+            </>
+          )}
           <a
             href="https://github.com/andreikornusko/quick-chat-react"
             target="_blank"
@@ -46,20 +69,34 @@ export function Header({ supabaseUrl, supabaseAnonKey, currentUser, onOpenChat, 
         </nav>
 
         <div className="header__actions">
-          <UserSwitcher
-            currentUser={currentUser}
-            users={users}
-            onLogin={onLogin}
-            onLogout={onLogout}
-          />
-          <ChatButton
-            supabaseUrl={supabaseUrl}
-            supabaseAnonKey={supabaseAnonKey}
-            userData={currentUser ?? undefined}
-            onClick={onOpenChat}
-            size="sm"
-            floating={false}
-          />
+          {activeTab === "home" ? (
+            <>
+              <UserSwitcher
+                currentUser={currentUser}
+                users={users}
+                onLogin={onLogin}
+                onLogout={onLogout}
+              />
+              {currentUser && (
+                <ChatButton
+                  supabaseUrl={supabaseUrl}
+                  supabaseAnonKey={supabaseAnonKey}
+                  userData={currentUser}
+                  onClick={onOpenChat}
+                  size="sm"
+                  floating={false}
+                />
+              )}
+            </>
+          ) : (
+            <UserAvatar
+              supabaseUrl={supabaseUrl}
+              supabaseAnonKey={supabaseAnonKey}
+              authMode="built-in"
+              size="sm"
+              onLogin={onOpenChat}
+            />
+          )}
         </div>
       </div>
     </header>

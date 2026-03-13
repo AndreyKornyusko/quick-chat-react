@@ -8,8 +8,29 @@ Drop-in real-time chat for React apps built on **[Supabase](https://supabase.com
 
 ---
 
+## Use as your startup's base
+
+`authMode="built-in"` gives you a complete user infrastructure in minutes — auth, profiles, real-time chat, file storage, and a navbar avatar component with sign out and theme switching. All production-ready on day one.
+
+The **`profiles` table is yours.** The library only reads the columns it needs (`display_name`, `avatar_url`, `bio`, `is_online`, `last_seen`) — anything else you add is invisible to it and fully under your control. Extend it freely:
+
+```sql
+ALTER TABLE public.profiles
+  ADD COLUMN IF NOT EXISTS plan      TEXT DEFAULT 'free',
+  ADD COLUMN IF NOT EXISTS role      TEXT DEFAULT 'member',
+  ADD COLUMN IF NOT EXISTS team_id   UUID,
+  ADD COLUMN IF NOT EXISTS onboarded BOOLEAN DEFAULT false;
+```
+
+Then read your custom fields with your own Supabase client alongside the library — no extra configuration needed. Gate library features by plan, drive onboarding flows from `onboarded`, restrict data by `team_id` via RLS — the library stays out of the way.
+
+**→ Full guide: [Using quick-chat-react as a Startup Base](docs/startup-base.md)**
+
+---
+
 ## Who it's for
 
+- **Startups** — use built-in auth as your user system and extend the schema for your product
 - **Lovable + Supabase projects** — add chat in 10 minutes, no backend changes needed
 - Any **React + Supabase** app using email/password, Google, or GitHub auth
 - Projects where chat users should be the same as your existing Supabase users
@@ -108,6 +129,7 @@ Full guide with token refresh, OAuth setup, and profile sync: [docs/external-aut
 | Guide | When to use |
 |---|---|
 | [Quick Start](docs/quick-start.md) | Fresh project, built-in auth, Lovable from scratch |
+| [Startup Base](docs/startup-base.md) | Extending profiles, onboarding, plan gating, team isolation |
 | [External Auth](docs/external-auth.md) | Already have Supabase Auth, want same-user chat |
 | [Lovable Existing Schema](docs/lovable-existing-schema.md) | Lovable project with existing `profiles` table |
 | [Separate Supabase Project](docs/advanced-separate-project.md) | Complete data isolation, separate billing |
@@ -140,6 +162,38 @@ const { data: { session } } = await supabase.auth.getSession();
 ```
 
 Full usage and customization guide: [docs/ChatButton.md](docs/ChatButton.md)
+
+---
+
+## `UserAvatar` component
+
+A user avatar button for your navbar or header. When using `authMode="built-in"`, it detects the current session automatically — no extra wiring needed. On click it shows a dropdown with profile info, theme switcher (Light / Dark / System), and Sign out.
+
+```tsx
+import { QuickChat, UserAvatar } from "quick-chat-react";
+
+const url = import.meta.env.VITE_SUPABASE_URL;
+const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+export default function App() {
+  return (
+    <>
+      <nav className="flex items-center justify-between px-6 h-14 border-b">
+        <span className="font-semibold">My App</span>
+        <UserAvatar
+          supabaseUrl={url}
+          supabaseAnonKey={key}
+          authMode="built-in"
+          showName
+        />
+      </nav>
+      <QuickChat supabaseUrl={url} supabaseAnonKey={key} authMode="built-in" />
+    </>
+  );
+}
+```
+
+Full usage and customization guide: [docs/UserAvatar.md](docs/UserAvatar.md)
 
 ---
 
@@ -210,6 +264,26 @@ For a user to appear in search results they must have a `profiles` row in your S
 | `iconColor` | `string` | — | Icon color (CSS color value). |
 | `icon` | `ReactNode` | — | Custom icon element. |
 | `label` | `string` | `"Open chat"` | Accessible aria-label for the button. |
+
+### `<UserAvatar>`
+
+| Prop | Type | Default | Description |
+|---|---|---|---|
+| `supabaseUrl` | `string` | — | **Required.** |
+| `supabaseAnonKey` | `string` | — | **Required.** |
+| `authMode` | `"built-in" \| "external"` | `"built-in"` | Auth mode. `"built-in"` detects session automatically. |
+| `userData` | `UserData` | — | Pass in external auth mode. |
+| `showName` | `boolean` | `false` | Show display name next to the avatar. |
+| `nameMaxLength` | `number` | `20` | Max characters before name is truncated with `…`. |
+| `size` | `"sm" \| "md" \| "lg"` | `"md"` | Avatar size — `sm` 32 px, `md` 40 px, `lg` 48 px. |
+| `floating` | `boolean` | `false` | Fixed floating element. Default is inline. |
+| `position` | `"top-right" \| "top-left" \| "bottom-right" \| "bottom-left"` | `"top-right"` | Screen position (floating mode only). |
+| `onThemeChange` | `(theme: string) => void` | — | Called when user picks a theme. |
+| `onProfileClick` | `() => void` | — | Replace built-in profile dialog with custom handler. |
+| `onLogout` | `() => void` | — | Called after sign-out completes (e.g. redirect to login). |
+| `onLogin` | `() => void` | — | Called when "Sign in" is clicked (no active session). |
+| `className` | `string` | — | Extra CSS classes on the trigger element. |
+| `style` | `CSSProperties` | — | Inline styles on the trigger element. |
 
 ---
 

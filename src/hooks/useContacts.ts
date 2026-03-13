@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSupabase } from "@/lib/QuickChatProvider";
 import { useAuth } from "@/contexts/AuthContext";
+import { qk } from "@/lib/queryKeys";
 
 export interface Contact {
   id: string;
@@ -18,7 +19,7 @@ export const useContacts = () => {
   const { user } = useAuth();
   const supabase = useSupabase();
   return useQuery({
-    queryKey: ["contacts", user?.id],
+    queryKey: qk.contacts(user?.id),
     queryFn: async () => {
       if (!user) return [];
       const { data, error } = await supabase
@@ -26,17 +27,24 @@ export const useContacts = () => {
         .select("id, contact_id")
         .eq("user_id", user.id);
       if (error) throw error;
+      if (!data || data.length === 0) return [];
 
-      const contacts: Contact[] = [];
-      for (const c of data ?? []) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("id, display_name, avatar_url, is_online, last_seen")
-          .eq("id", c.contact_id)
-          .single();
-        if (profile) contacts.push({ id: c.id, contact_id: c.contact_id, profile });
-      }
-      return contacts;
+      // Batch: fetch all profiles in one query instead of one per contact
+      const contactIds = data.map((c) => c.contact_id);
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, display_name, avatar_url, is_online, last_seen")
+        .in("id", contactIds);
+
+      const profileMap = Object.fromEntries((profiles ?? []).map((p) => [p.id, p]));
+
+      return data
+        .map((c) => {
+          const profile = profileMap[c.contact_id];
+          if (!profile) return null;
+          return { id: c.id, contact_id: c.contact_id, profile } satisfies Contact;
+        })
+        .filter((c): c is Contact => c !== null);
     },
     enabled: !!user,
   });
@@ -52,11 +60,12 @@ export const useAddContact = () => {
       const { error } = await supabase.from("contacts").insert({ user_id: user.id, contact_id: contactId });
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["contacts"] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: qk.contacts(user?.id) }),
   });
 };
 
 export const useRemoveContact = () => {
+  const { user } = useAuth();
   const supabase = useSupabase();
   const qc = useQueryClient();
   return useMutation({
@@ -64,7 +73,7 @@ export const useRemoveContact = () => {
       const { error } = await supabase.from("contacts").delete().eq("id", contactRowId);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["contacts"] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: qk.contacts(user?.id) }),
   });
 };
 
@@ -72,7 +81,7 @@ export const useSearchUsers = (query: string) => {
   const { user } = useAuth();
   const supabase = useSupabase();
   return useQuery({
-    queryKey: ["searchUsers", query],
+    queryKey: qk.searchUsers(query),
     queryFn: async () => {
       if (!user || query.length < 2) return [];
       const { data, error } = await supabase

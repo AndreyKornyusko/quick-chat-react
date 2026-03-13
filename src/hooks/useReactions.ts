@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSupabase } from "@/lib/QuickChatProvider";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect } from "react";
+import { qk } from "@/lib/queryKeys";
 
 export interface Reaction {
   id: string;
@@ -25,7 +26,7 @@ export const useReactions = (conversationId: string | null) => {
   const qc = useQueryClient();
 
   const query = useQuery({
-    queryKey: ["reactions", conversationId],
+    queryKey: qk.reactions(conversationId),
     queryFn: async () => {
       if (!conversationId) return {};
 
@@ -89,7 +90,7 @@ export const useReactions = (conversationId: string | null) => {
     const channel = supabase
       .channel(`reactions-${conversationId}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "message_reactions" }, () => {
-        qc.invalidateQueries({ queryKey: ["reactions", conversationId] });
+        qc.invalidateQueries({ queryKey: qk.reactions(conversationId) });
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
@@ -127,7 +128,7 @@ export const useToggleReaction = () => {
       return conversationId;
     },
     onSuccess: (conversationId) => {
-      qc.invalidateQueries({ queryKey: ["reactions", conversationId] });
+      qc.invalidateQueries({ queryKey: qk.reactions(conversationId) });
     },
   });
 };

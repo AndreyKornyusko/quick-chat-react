@@ -8,13 +8,18 @@ import { Features } from "./components/Features/Features";
 import { Team } from "./components/Team/Team";
 import { Footer } from "./components/Footer/Footer";
 import { ChatModal } from "./components/ChatModal/ChatModal";
+import { InnerChatPage } from "./components/InnerChatPage/InnerChatPage";
+import { DocsPage } from "./components/DocsPage/DocsPage";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 
+type Tab = "home" | "chat" | "docs";
+
 export default function App() {
   const { currentUser, login, logout } = useDemoAuth();
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<Tab>("home");
 
   return (
     <>
@@ -26,19 +31,31 @@ export default function App() {
         onLogin={login}
         onLogout={logout}
         users={MOCK_USERS}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
       />
 
-      <main>
-        <Hero onOpenChat={() => setIsChatOpen(true)} isLoggedIn={currentUser !== null} />
-        <Features />
-        <Team
-          users={MOCK_USERS}
-          currentUser={currentUser}
-          onLogin={login}
-          onOpenChat={() => setIsChatOpen(true)}
+      {activeTab === "home" ? (
+        <main>
+          <Hero onOpenChat={() => setIsChatOpen(true)} isLoggedIn={currentUser !== null} />
+          <Features />
+          <Team
+            users={MOCK_USERS}
+            currentUser={currentUser}
+            onLogin={login}
+            onOpenChat={() => setIsChatOpen(true)}
+          />
+          <Footer />
+        </main>
+      ) : activeTab === "chat" ? (
+        <InnerChatPage
+          supabaseUrl={SUPABASE_URL}
+          supabaseAnonKey={SUPABASE_ANON_KEY}
+          onOpenModal={() => setIsChatOpen(true)}
         />
-        <Footer />
-      </main>
+      ) : (
+        <DocsPage />
+      )}
 
       {isChatOpen && (
         <ChatModal

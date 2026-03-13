@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useMemo } from "react";
+import React, { createContext, useContext, useMemo, useState } from "react";
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { Database } from "@/integrations/supabase/types";
@@ -20,16 +20,21 @@ export const useQuickChat = () => {
 export const useSupabase = () => useQuickChat().supabase;
 export const useConfig = () => useQuickChat().config;
 
-const queryClient = new QueryClient();
-
 interface QuickChatProviderProps {
   supabaseUrl: string;
   supabaseAnonKey: string;
   config: QuickChatConfig;
+  /** Optional: pass your app's existing QueryClient to share cache with the library. */
+  queryClient?: QueryClient;
   children: React.ReactNode;
 }
 
-export const QuickChatProvider = ({ supabaseUrl, supabaseAnonKey, config, children }: QuickChatProviderProps) => {
+export const QuickChatProvider = ({ supabaseUrl, supabaseAnonKey, config, queryClient: queryClientProp, children }: QuickChatProviderProps) => {
+  // Create an internal QueryClient per-instance (not a module-level singleton)
+  // so multiple <QuickChatProvider> mounts don't share state.
+  const [internalQueryClient] = useState(() => new QueryClient());
+  const activeQueryClient = queryClientProp ?? internalQueryClient;
+
   const supabase = useMemo(
     () =>
       createClient<Database>(supabaseUrl, supabaseAnonKey, {
@@ -41,7 +46,7 @@ export const QuickChatProvider = ({ supabaseUrl, supabaseAnonKey, config, childr
   const value = useMemo(() => ({ supabase, config }), [supabase, config]);
 
   return (
-    <QueryClientProvider client={queryClient}>
+    <QueryClientProvider client={activeQueryClient}>
       <QuickChatContext.Provider value={value}>
         {children}
       </QuickChatContext.Provider>

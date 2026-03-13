@@ -3,6 +3,7 @@ import { useSupabase } from "@/lib/QuickChatProvider";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useMemo } from "react";
 import type { Tables } from "@/integrations/supabase/types";
+import { qk } from "@/lib/queryKeys";
 
 const PAGE_SIZE = 30;
 
@@ -23,7 +24,7 @@ export const useMessages = (conversationId: string | null) => {
   const qc = useQueryClient();
 
   const query = useInfiniteQuery({
-    queryKey: ["messages", conversationId],
+    queryKey: qk.messages(conversationId),
     queryFn: async ({ pageParam = 0 }) => {
       if (!conversationId || !user) return [];
 
@@ -38,57 +39,70 @@ export const useMessages = (conversationId: string | null) => {
         .order("created_at", { ascending: false })
         .range(from, to);
       if (error) throw error;
+      if (!msgs || msgs.length === 0) return [];
 
-      const enriched: Message[] = [];
-      for (const msg of msgs ?? []) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("display_name, avatar_url")
-          .eq("id", msg.sender_id)
-          .single();
+      // --- Batch all enrichment queries ---
 
-        let replyTo = null;
-        if (msg.reply_to_id) {
-          const { data: reply } = await supabase
-            .from("messages")
-            .select("content, sender_id")
-            .eq("id", msg.reply_to_id)
-            .single();
-          replyTo = reply;
-        }
+      // 1. Sender profiles (batch)
+      const senderIds = [...new Set(msgs.map((m) => m.sender_id))];
+      const { data: senderProfiles } = await supabase
+        .from("profiles")
+        .select("id, display_name, avatar_url")
+        .in("id", senderIds);
+      const senderMap = Object.fromEntries((senderProfiles ?? []).map((p) => [p.id, p]));
 
-        let forwardedFromProfile = null;
-        if (msg.forwarded_from_id) {
-          const { data: fwdMsg } = await supabase
-            .from("messages")
-            .select("sender_id")
-            .eq("id", msg.forwarded_from_id)
-            .single();
-          if (fwdMsg) {
-            const { data: fwdProfile } = await supabase
-              .from("profiles")
-              .select("display_name")
-              .eq("id", fwdMsg.sender_id)
-              .single();
-            forwardedFromProfile = fwdProfile ? { ...fwdProfile, sender_id: fwdMsg.sender_id } : null;
-          }
-        }
-
-        const { data: reads } = await supabase
-          .from("message_reads")
-          .select("user_id")
-          .eq("message_id", msg.id);
-
-        enriched.push({
-          ...msg,
-          sender_profile: profile ?? undefined,
-          reply_to: replyTo,
-          forwarded_from_profile: forwardedFromProfile,
-          read_by: reads?.map((r) => r.user_id) ?? [],
-        });
+      // 2. Reply-to messages (batch)
+      const replyIds = [...new Set(msgs.map((m) => m.reply_to_id).filter((id): id is string => !!id))];
+      const replyMap: Record<string, { content: string | null; sender_id: string }> = {};
+      if (replyIds.length > 0) {
+        const { data: replyMsgs } = await supabase
+          .from("messages")
+          .select("id, content, sender_id")
+          .in("id", replyIds);
+        (replyMsgs ?? []).forEach((r) => { replyMap[r.id] = { content: r.content, sender_id: r.sender_id }; });
       }
 
-      return enriched;
+      // 3. Forwarded-from messages + their profiles (batch)
+      const fwdIds = [...new Set(msgs.map((m) => m.forwarded_from_id).filter((id): id is string => !!id))];
+      const fwdProfileMap: Record<string, { display_name: string; sender_id: string }> = {};
+      if (fwdIds.length > 0) {
+        const { data: fwdMsgs } = await supabase
+          .from("messages")
+          .select("id, sender_id")
+          .in("id", fwdIds);
+        const fwdSenderIds = [...new Set((fwdMsgs ?? []).map((m) => m.sender_id))];
+        if (fwdSenderIds.length > 0) {
+          const { data: fwdProfiles } = await supabase
+            .from("profiles")
+            .select("id, display_name")
+            .in("id", fwdSenderIds);
+          const fwdSenderMap = Object.fromEntries((fwdProfiles ?? []).map((p) => [p.id, p.display_name]));
+          (fwdMsgs ?? []).forEach((m) => {
+            fwdProfileMap[m.id] = { display_name: fwdSenderMap[m.sender_id] ?? "Unknown", sender_id: m.sender_id };
+          });
+        }
+      }
+
+      // 4. Read receipts (batch)
+      const msgIds = msgs.map((m) => m.id);
+      const readsByMsg: Record<string, string[]> = {};
+      msgIds.forEach((id) => { readsByMsg[id] = []; });
+      const { data: reads } = await supabase
+        .from("message_reads")
+        .select("message_id, user_id")
+        .in("message_id", msgIds);
+      (reads ?? []).forEach((r) => {
+        if (readsByMsg[r.message_id]) readsByMsg[r.message_id].push(r.user_id);
+      });
+
+      // Assemble enriched messages
+      return msgs.map((msg) => ({
+        ...msg,
+        sender_profile: senderMap[msg.sender_id] ?? undefined,
+        reply_to: msg.reply_to_id ? (replyMap[msg.reply_to_id] ?? null) : null,
+        forwarded_from_profile: msg.forwarded_from_id ? (fwdProfileMap[msg.forwarded_from_id] ?? null) : null,
+        read_by: readsByMsg[msg.id] ?? [],
+      })) satisfies Message[];
     },
     initialPageParam: 0,
     getNextPageParam: (lastPage, allPages) => {
@@ -105,10 +119,10 @@ export const useMessages = (conversationId: string | null) => {
     const channel = supabase
       .channel(`messages-${conversationId}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "messages", filter: `conversation_id=eq.${conversationId}` }, () => {
-        qc.invalidateQueries({ queryKey: ["messages", conversationId] });
+        qc.invalidateQueries({ queryKey: qk.messages(conversationId) });
       })
-      .on("postgres_changes", { event: "*", schema: "public", table: "message_reads" }, () => {
-        qc.invalidateQueries({ queryKey: ["messages", conversationId] });
+      .on("postgres_changes", { event: "*", schema: "public", table: "message_reads", filter: `message_id=in.(select id from messages where conversation_id=eq.${conversationId})` }, () => {
+        qc.invalidateQueries({ queryKey: qk.messages(conversationId) });
       })
       .subscribe();
 
@@ -139,7 +153,7 @@ export const useUnreadMessageIds = (conversationId: string | null) => {
   const supabase = useSupabase();
 
   const query = useQuery({
-    queryKey: ["unread-ids", conversationId, user?.id],
+    queryKey: qk.unreadIds(conversationId, user?.id),
     queryFn: async () => {
       if (!conversationId || !user) return new Set<string>();
 
@@ -197,7 +211,7 @@ export const useSendMessage = () => {
     },
     onMutate: async (msg) => {
       if (!user) return;
-      const queryKey = ["messages", msg.conversation_id];
+      const queryKey = qk.messages(msg.conversation_id);
       await qc.cancelQueries({ queryKey });
 
       const previous = qc.getQueryData(queryKey);
@@ -234,7 +248,7 @@ export const useSendMessage = () => {
       return { previous, tempId: optimisticMessage.id };
     },
     onSuccess: (result, vars) => {
-      const queryKey = ["messages", vars.conversation_id];
+      const queryKey = qk.messages(vars.conversation_id);
       qc.setQueryData(queryKey, (old: any) => {
         if (!old?.pages) return old;
         const realMsg: Message = {
@@ -250,16 +264,16 @@ export const useSendMessage = () => {
           ),
         };
       });
-      qc.invalidateQueries({ queryKey: ["conversations"] });
+      qc.invalidateQueries({ queryKey: qk.conversations(user?.id) });
     },
     onError: (_err, vars, context) => {
-      const queryKey = ["messages", vars.conversation_id];
+      const queryKey = qk.messages(vars.conversation_id);
       qc.setQueryData(queryKey, (old: any) => {
         if (!old?.pages) return old;
         return {
           ...old,
           pages: old.pages.map((page: Message[]) =>
-            page.map((m: any) => (m.id === context?.tempId || m.id === vars._tempId) 
+            page.map((m: any) => (m.id === context?.tempId || m.id === vars._tempId)
               ? { ...m, _status: "failed", _errorMsg: _err instanceof Error ? _err.message : "Send failed" }
               : m
             )
@@ -280,7 +294,7 @@ export const useEditMessage = () => {
       return conversationId;
     },
     onSuccess: (conversationId) => {
-      qc.invalidateQueries({ queryKey: ["messages", conversationId] });
+      qc.invalidateQueries({ queryKey: qk.messages(conversationId) });
     },
   });
 };
@@ -295,7 +309,7 @@ export const useDeleteMessage = () => {
       return conversationId;
     },
     onSuccess: (conversationId) => {
-      qc.invalidateQueries({ queryKey: ["messages", conversationId] });
+      qc.invalidateQueries({ queryKey: qk.messages(conversationId) });
     },
   });
 };
@@ -313,9 +327,9 @@ export const useMarkAsRead = () => {
     },
     onSuccess: (conversationId) => {
       if (conversationId) {
-        qc.invalidateQueries({ queryKey: ["messages", conversationId] });
-        qc.invalidateQueries({ queryKey: ["conversations"] });
-        qc.invalidateQueries({ queryKey: ["unread-ids", conversationId] });
+        qc.invalidateQueries({ queryKey: qk.messages(conversationId) });
+        qc.invalidateQueries({ queryKey: qk.conversations(user?.id) });
+        qc.invalidateQueries({ queryKey: qk.unreadIds(conversationId, user?.id) });
       }
     },
   });

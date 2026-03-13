@@ -33,14 +33,28 @@ export const MessageContextMenu = ({
   const [open, setOpen] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [showPicker, setShowPicker] = useState(false);
+  const [menuInteractive, setMenuInteractive] = useState(false);
   const isMobile = useIsMobile();
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const interactiveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const closeMenu = useCallback(() => {
     setOpen(false);
     setShowPicker(false);
+    if (interactiveTimer.current) {
+      clearTimeout(interactiveTimer.current);
+      interactiveTimer.current = null;
+    }
+  }, []);
+
+  // Cleanup timers on unmount
+  useEffect(() => {
+    return () => {
+      if (longPressTimer.current) clearTimeout(longPressTimer.current);
+      if (interactiveTimer.current) clearTimeout(interactiveTimer.current);
+    };
   }, []);
 
   // Close on outside click
@@ -101,21 +115,25 @@ export const MessageContextMenu = ({
     e.stopPropagation();
     if (message.is_deleted) return;
 
-    // Position relative to viewport
-    const x = e.clientX;
-    const y = e.clientY;
-    setPosition({ x, y });
+    setPosition({ x: e.clientX, y: e.clientY });
     setOpen(true);
     setShowPicker(false);
+    setMenuInteractive(true); // desktop: interactive immediately
   }, [message.is_deleted]);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     if (message.is_deleted) return;
     const touch = e.touches[0];
     longPressTimer.current = setTimeout(() => {
+      longPressTimer.current = null;
+      // Clear any text selection the browser made during the hold
+      window.getSelection()?.removeAllRanges();
       setPosition({ x: touch.clientX, y: touch.clientY });
       setOpen(true);
       setShowPicker(false);
+      // Delay interactivity so the finger-lift doesn't immediately trigger a menu item
+      setMenuInteractive(false);
+      interactiveTimer.current = setTimeout(() => setMenuInteractive(true), 350);
     }, 500);
   }, [message.is_deleted]);
 
@@ -167,22 +185,30 @@ export const MessageContextMenu = ({
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
       onTouchMove={handleTouchMove}
+      className="select-none"
+      // Prevents iOS native callout and text selection popup on long press
+      style={{ WebkitTouchCallout: "none" } as React.CSSProperties}
     >
       {children}
 
       {open && (
         <>
-          {/* Backdrop */}
-          <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-[2px]" onClick={closeMenu} onTouchEnd={(e) => { e.preventDefault(); closeMenu(); }} />
+          {/* Backdrop — stopPropagation prevents container's long-press timer from starting */}
+          <div
+            className="fixed inset-0 z-50 bg-black/30 backdrop-blur-[2px]"
+            onClick={closeMenu}
+            onTouchStart={(e) => { e.stopPropagation(); closeMenu(); }}
+          />
 
           {/* Menu */}
           <div
             ref={menuRef}
-            className={
+            className={[
               isMobile
                 ? "fixed bottom-0 left-0 right-0 z-[60] flex justify-center animate-in slide-in-from-bottom-5 duration-200"
-                : "fixed z-[60] animate-in fade-in-0 zoom-in-95 duration-150"
-            }
+                : "fixed z-[60] animate-in fade-in-0 zoom-in-95 duration-150",
+              isMobile && !menuInteractive ? "pointer-events-none" : "",
+            ].join(" ")}
             style={isMobile ? {} : menuStyle}
           >
             <div className={`${isMobile ? "rounded-t-2xl w-full max-w-[320px]" : "rounded-xl"} border border-border bg-popover shadow-2xl overflow-hidden`}>

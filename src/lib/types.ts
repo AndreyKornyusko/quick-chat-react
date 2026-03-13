@@ -67,6 +67,39 @@ export interface QuickChatProps {
   onConversationSelect?: (id: string) => void;
 }
 
+export interface UserAvatarProps {
+  /** Supabase project URL */
+  supabaseUrl: string;
+  /** Supabase anon/publishable key */
+  supabaseAnonKey: string;
+  /** User data (required when authMode is 'external') */
+  userData?: UserData;
+  /** Use built-in Supabase auth or pass your own user data */
+  authMode?: "built-in" | "external";
+  /** Show display name next to avatar (default: false) */
+  showName?: boolean;
+  /** Avatar size variant (default: "md") */
+  size?: "sm" | "md" | "lg";
+  /** Render as a fixed floating element (default: false — inline) */
+  floating?: boolean;
+  /** Fixed position on screen (only used when floating=true, default: "top-right") */
+  position?: "top-right" | "top-left" | "bottom-right" | "bottom-left";
+  /** Max characters for name display before truncation (default: 20) */
+  nameMaxLength?: number;
+  /** Callback fired when theme changes */
+  onThemeChange?: (theme: "light" | "dark" | "system") => void;
+  /** Override default profile dialog with custom handler */
+  onProfileClick?: () => void;
+  /** Callback fired after sign out completes */
+  onLogout?: () => void;
+  /** Called when user clicks "Sign in" (built-in mode, not logged in) */
+  onLogin?: () => void;
+  /** Additional CSS class names */
+  className?: string;
+  /** Inline styles applied to the trigger element */
+  style?: CSSProperties;
+}
+
 export interface ChatButtonProps {
   /** Supabase project URL */
   supabaseUrl: string;
