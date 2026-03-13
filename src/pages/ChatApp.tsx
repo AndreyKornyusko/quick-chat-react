@@ -19,7 +19,7 @@ const ChatApp = () => {
   };
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-background">
+    <div className="flex h-full w-full overflow-hidden bg-background">
       {(!isMobile || showSidebar) && (
         <div className={`${isMobile ? "w-full" : "w-[380px] min-w-[320px] border-r border-border"} flex flex-col h-full overflow-hidden`}>
           <ChatSidebar
