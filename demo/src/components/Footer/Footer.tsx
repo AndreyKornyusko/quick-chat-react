@@ -4,7 +4,7 @@ export function Footer() {
   return (
     <footer className="footer">
       <div className="container footer__inner">
-        <span className="footer__logo">💬 My Amazing Startup</span>
+        <span className="footer__logo">Demo Startup</span>
 
         <nav className="footer__links">
           <a

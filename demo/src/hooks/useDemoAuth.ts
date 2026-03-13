@@ -20,6 +20,7 @@ export function useDemoAuth() {
             ...mockUser,
             id: session.user.id,
             accessToken: session.access_token,
+            refreshToken: session.refresh_token,
           });
         }
       }
@@ -46,6 +47,7 @@ export function useDemoAuth() {
       ...user,
       id: data.session.user.id,
       accessToken: data.session.access_token,
+      refreshToken: data.session.refresh_token,
     });
   };
 

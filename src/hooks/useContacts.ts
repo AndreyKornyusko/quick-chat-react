@@ -79,7 +79,7 @@ export const useSearchUsers = (query: string) => {
         .from("profiles")
         .select("id, display_name, avatar_url, is_online")
         .neq("id", user.id)
-        .or(`display_name.ilike.%${query}%`)
+        .ilike("display_name", `%${query}%`)
         .limit(20);
       if (error) throw error;
       return data ?? [];

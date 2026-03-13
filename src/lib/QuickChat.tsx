@@ -19,16 +19,15 @@ const QuickChatInner = ({
 }: Pick<QuickChatProps, "authMode" | "userData" | "height" | "width" | "onUnreadCountChange" | "onConversationSelect">) => {
   const { user, loading } = useAuth();
 
-  if (authMode === "built-in") {
-    if (loading) {
-      return (
-        <div className="flex items-center justify-center bg-background" style={{ height, width }}>
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-        </div>
-      );
-    }
-    if (!user) return <Auth />;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center bg-background" style={{ height, width }}>
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      </div>
+    );
   }
+
+  if (authMode === "built-in" && !user) return <Auth />;
 
   return (
     <div style={{ height, width }}>

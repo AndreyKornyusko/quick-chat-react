@@ -12,6 +12,12 @@ export interface UserData {
    * Generate via Supabase Admin API: supabase.auth.admin.generateLink() or a custom JWT signed with your project's JWT secret.
    */
   accessToken?: string;
+  /**
+   * Supabase refresh token for this user.
+   * Provide alongside accessToken to establish a full Supabase auth session (required for token refresh).
+   * If omitted, the library proceeds with a limited session (auth.uid() may be NULL).
+   */
+  refreshToken?: string;
 }
 
 export interface QuickChatConfig {

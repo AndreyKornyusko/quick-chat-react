@@ -33,8 +33,17 @@ const ExternalAuthProvider: React.FC<ExternalAuthProviderProps> = ({ children, u
       setLoading(false);
       return;
     }
+    if (!userData.refreshToken) {
+      console.warn(
+        "[QuickChat] authMode='external' — userData.refreshToken is missing. " +
+        "Proceeding without a full Supabase session; token refresh will not work. " +
+        "Pass refreshToken alongside accessToken for full functionality."
+      );
+      setLoading(false);
+      return;
+    }
     supabase.auth
-      .setSession({ access_token: userData.accessToken, refresh_token: "" })
+      .setSession({ access_token: userData.accessToken, refresh_token: userData.refreshToken })
       .then(({ data, error }) => {
         if (error) { setSessionError(error.message); console.error("[QuickChat] Failed to set Supabase session:", error.message); }
         else { setSession(data.session); }

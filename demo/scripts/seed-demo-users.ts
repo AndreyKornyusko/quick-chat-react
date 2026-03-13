@@ -64,14 +64,17 @@ async function seed() {
   for (const demo of DEMO_USERS) {
     const found = existing.get(demo.email);
 
+    let userId: string | null = null;
+
     if (found) {
       // Reset password so it always matches DEMO_PASSWORD (handles prior built-in auth signups)
       const { error } = await supabase.auth.admin.updateUserById(found.id, {
         password: DEMO_PASSWORD,
         user_metadata: { display_name: demo.name, avatar_url: demo.avatar },
       });
-      if (error) console.error(`  ✗ ${demo.email}: ${error.message}`);
-      else       console.log(`  ✓ Updated: ${demo.email} (id: ${found.id})`);
+      if (error) { console.error(`  ✗ ${demo.email}: ${error.message}`); continue; }
+      console.log(`  ✓ Updated: ${demo.email} (id: ${found.id})`);
+      userId = found.id;
     } else {
       // Create fresh — email_confirm: true skips confirmation email
       const { data: created, error } = await supabase.auth.admin.createUser({
@@ -80,9 +83,17 @@ async function seed() {
         email_confirm: true,
         user_metadata: { display_name: demo.name, avatar_url: demo.avatar },
       });
-      if (error) console.error(`  ✗ ${demo.email}: ${error.message}`);
-      else       console.log(`  ✓ Created: ${demo.email} (id: ${created.user.id})`);
+      if (error) { console.error(`  ✗ ${demo.email}: ${error.message}`); continue; }
+      console.log(`  ✓ Created: ${demo.email} (id: ${created.user.id})`);
+      userId = created.user.id;
     }
+
+    // Upsert profile — handles users created before the trigger existed
+    const { error: profileError } = await supabase
+      .from("profiles")
+      .upsert({ id: userId, display_name: demo.name, avatar_url: demo.avatar }, { onConflict: "id" });
+    if (profileError) console.error(`  ✗ Profile upsert for ${demo.email}: ${profileError.message}`);
+    else              console.log(`    → Profile upserted for ${demo.email}`);
   }
 
   console.log("\nDone! Demo users are ready. You can now run the demo app.");

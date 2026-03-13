@@ -30,7 +30,7 @@ export function Header({ supabaseUrl, supabaseAnonKey, currentUser, onOpenChat, 
     <header className="header" ref={headerRef}>
       <div className="container header__inner">
         <a href="#" className="header__logo">
-           My Amazing Startup
+           Demo Startup
         </a>
 
         <nav className="header__nav">
