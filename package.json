@@ -62,6 +62,7 @@
   "devDependencies": {
     "@emoji-mart/data": "^1.2.1",
     "@emoji-mart/react": "^1.1.1",
+    "@supabase/supabase-js": "^2.0.0",
     "@eslint/js": "^9.32.0",
     "@hookform/resolvers": "^3.10.0",
     "@radix-ui/react-accordion": "^1.2.11",
