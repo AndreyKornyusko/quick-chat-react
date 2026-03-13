@@ -9,13 +9,18 @@ export interface UserData {
   /**
    * Supabase JWT access token for this user.
    * Required when authMode is 'external' — without it auth.uid() is NULL and all DB/storage operations fail.
-   * Generate via Supabase Admin API: supabase.auth.admin.generateLink() or a custom JWT signed with your project's JWT secret.
+   * 
+   * Same Supabase project: pass session.access_token directly from supabase.auth.getSession().
+   * Separate Supabase project: generate via supabase.auth.admin.createSession(userId) on your backend.
    */
   accessToken?: string;
   /**
    * Supabase refresh token for this user.
-   * Provide alongside accessToken to establish a full Supabase auth session (required for token refresh).
-   * If omitted, the library proceeds with a limited session (auth.uid() may be NULL).
+   * Required alongside accessToken — omitting it disables automatic token refresh,
+   * causing the session to silently expire after 1 hour.
+   *
+   * Same Supabase project: pass session.refresh_token from supabase.auth.getSession().
+   * Separate Supabase project: use the refresh_token returned by supabase.auth.admin.createSession().
    */
   refreshToken?: string;
 }

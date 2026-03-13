@@ -11,6 +11,8 @@ export function useDemoAuth() {
   const [loading, setLoading] = useState(true);
 
   // On mount, restore an existing Supabase session (persisted by the SDK).
+  // Also subscribes to onAuthStateChange so refreshed tokens are forwarded to
+  // the chat library automatically — without this, the session silently expires.
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
@@ -26,6 +28,23 @@ export function useDemoAuth() {
       }
       setLoading(false);
     });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        if (!session) return;
+        setCurrentUser((prev) => {
+          if (!prev) return prev;
+          // Refresh tokens while keeping the rest of the user data intact
+          return {
+            ...prev,
+            accessToken: session.access_token,
+            refreshToken: session.refresh_token,
+          };
+        });
+      }
+    );
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const login = async (user: UserData) => {

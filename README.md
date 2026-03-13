@@ -1,193 +1,116 @@
 # quick-chat-react
 
-A drop-in React chat component library backed by [Supabase](https://supabase.com). Add a full-featured real-time chat to your startup in minutes — with support for your own auth system or Supabase's built-in auth.
+Drop-in real-time chat for React apps built on **[Supabase](https://supabase.com)**.
+
+> **Requires Supabase.** If your project uses Firebase, Auth0, or a custom backend, this library is not the right fit.
 
 **Features:** real-time messaging · group conversations · voice messages · file & photo uploads · emoji reactions · read receipts · online status · contact management
 
 ---
 
-## Installation
+## Who it's for
+
+- **Lovable + Supabase projects** — add chat in 10 minutes, no backend changes needed
+- Any **React + Supabase** app using email/password, Google, or GitHub auth
+- Projects where chat users should be the same as your existing Supabase users
+
+## Compatibility
+
+| Your setup | Supported |
+|---|---|
+| Fresh Supabase project | ✅ Yes |
+| Supabase Auth (email/password) | ✅ Yes |
+| Supabase OAuth (Google, GitHub) | ✅ Yes |
+| Lovable + Supabase (no `profiles` table yet) | ✅ Yes |
+| Lovable + Supabase (`profiles` table already exists) | ✅ Yes — [use the additive migration](docs/lovable-existing-schema.md) |
+| Separate Supabase project for chat | ⚠️ Advanced — [see guide](docs/advanced-separate-project.md) |
+| Firebase / Auth0 / custom auth backend | ❌ Not supported |
+
+---
+
+## Quick Start (10 minutes)
 
 ```bash
 npm install quick-chat-react
 ```
 
-Import the stylesheet once in your app entry point:
-
-```tsx
+```ts
+// main.tsx — import once
 import "quick-chat-react/style.css";
 ```
 
----
-
-## Supabase setup
-
-1. Create a [Supabase](https://supabase.com) project.
-2. Run the SQL migration files from [`/supabase/migrations/`](./supabase/migrations) **in filename order** using the Supabase SQL Editor or CLI. These create all required tables, RLS policies, storage buckets, realtime subscriptions, and the trigger that auto-creates a `profiles` row when a new auth user signs up.
-3. Copy your **Project URL** and **anon/public key** from Project Settings → API.
-4. **(Recommended)** Disable email confirmation so users (and provisioned demo/test accounts) can log in immediately:
-   > Supabase Dashboard → Authentication → Email → turn off **"Confirm email"**
-
----
-
-## Auth modes
-
-The library supports two auth flows. Choose the one that fits your stack.
-
----
-
-### Built-in auth
-
-Supabase handles everything — login, signup, password reset. The component renders its own auth screens when the user is not yet signed in.
-
-**When to use:** you don't have your own auth system, or you want the chat to manage auth independently.
+Run the migrations from [`/supabase/migrations/`](./supabase/migrations) in filename order via Supabase SQL Editor, then:
 
 ```tsx
 import { QuickChat } from "quick-chat-react";
-import "quick-chat-react/style.css";
 
 export default function App() {
   return (
     <QuickChat
       supabaseUrl={import.meta.env.VITE_SUPABASE_URL}
       supabaseAnonKey={import.meta.env.VITE_SUPABASE_ANON_KEY}
-      authMode="built-in"   // default — can be omitted
     />
   );
 }
 ```
 
-The user signs in once. Their Supabase session is stored in `localStorage` and auto-refreshed.
+> **Already have a `profiles` table?** (Lovable-generated projects usually do.) Skip the standard migration files and run [`additive-for-existing-profiles.sql`](./supabase/migrations/additive-for-existing-profiles.sql) instead. See the [Lovable guide](docs/lovable-existing-schema.md).
+
+Full step-by-step: [docs/quick-start.md](docs/quick-start.md)
 
 ---
 
-### External auth
+## Auth Modes
 
-Your app handles authentication. You pass the current user's data and a Supabase JWT access token to the component — no Supabase login screen is shown.
+### Built-in auth (library handles login UI)
 
-**When to use:** you already have users authenticated via Firebase, Auth0, Cognito, a custom backend, or any other provider.
+The library renders its own signup/login screens when the user is not signed in. Best for fresh projects with no existing auth.
 
-#### How it works
+```tsx
+<QuickChat
+  supabaseUrl={import.meta.env.VITE_SUPABASE_URL}
+  supabaseAnonKey={import.meta.env.VITE_SUPABASE_ANON_KEY}
+  // authMode="built-in" is the default — can be omitted
+/>
+```
 
-1. Your backend generates a Supabase JWT for the authenticated user.
-2. Your frontend passes it to `<QuickChat>` via `userData.accessToken`.
-3. The library calls `supabase.auth.setSession()` with that token, establishing a real Supabase session so all Row Level Security policies work correctly.
+### External auth (pass your existing Supabase session)
+
+Your app already has Supabase Auth. Pass the session tokens and the chat reuses the same logged-in user — no second login.
 
 ```tsx
 import { QuickChat } from "quick-chat-react";
-import "quick-chat-react/style.css";
 
-export default function ChatPage() {
-  const { user } = useYourAuthHook(); // from Firebase, Auth0, etc.
-  const [accessToken, setAccessToken] = useState<string | null>(null);
+// After your own supabase.auth.signIn...
+const { data: { session } } = await supabase.auth.getSession();
 
-  useEffect(() => {
-    if (!user) return;
-    // Fetch a Supabase JWT from your backend
-    fetch("/api/chat-token", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${user.token}` },
-    })
-      .then((r) => r.json())
-      .then(({ supabaseToken }) => setAccessToken(supabaseToken));
-  }, [user]);
-
-  if (!user || !accessToken) return null;
-
-  return (
-    <QuickChat
-      supabaseUrl={import.meta.env.VITE_SUPABASE_URL}
-      supabaseAnonKey={import.meta.env.VITE_SUPABASE_ANON_KEY}
-      authMode="external"
-      userData={{
-        id: user.uid,          // must match the user's row in profiles.id
-        name: user.displayName,
-        avatar: user.photoURL,
-        email: user.email,
-        accessToken,           // Supabase JWT — required for external mode
-      }}
-    />
-  );
-}
-```
-
-#### Backend: generating the Supabase access token
-
-Your backend needs to generate a Supabase JWT for each user. The recommended approach uses the **Supabase Admin API**:
-
-```ts
-// Node.js / Edge Function example
-import { createClient } from "@supabase/supabase-js";
-
-const supabaseAdmin = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY  // never expose this on the frontend
-);
-
-// Option A — user already exists in Supabase Auth
-async function getChatToken(supabaseUserId: string) {
-  const { data, error } = await supabaseAdmin.auth.admin.generateLink({
-    type: "magiclink",
-    email: userEmail,
-  });
-  // extract the access_token from data.properties.access_token
-  return data.properties.access_token;
-}
-
-// Option B — custom JWT signed with your project's JWT secret
-// (Advanced: use the SUPABASE_JWT_SECRET from Project Settings → API)
-import jwt from "jsonwebtoken";
-
-function getChatToken(userId: string) {
-  return jwt.sign(
-    { sub: userId, role: "authenticated" },
-    process.env.SUPABASE_JWT_SECRET,
-    { expiresIn: "1h" }
-  );
-}
-```
-
-#### Provisioning users in Supabase
-
-Every user of your app needs a corresponding Supabase auth account so that:
-- `auth.uid()` resolves to their UUID in RLS policies (enables all reads/writes)
-- A `profiles` row exists — required for contact search and chat
-
-The database trigger creates the `profiles` row automatically when you create a Supabase auth user. Do this **server-side** when the user first signs up in your app:
-
-```ts
-// Node.js / backend — use the service role key, never expose it on the frontend
-const supabaseAdmin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
-  auth: { autoRefreshToken: false, persistSession: false },
-});
-
-const { data } = await supabaseAdmin.auth.admin.createUser({
-  email: user.email,
-  password: someSecurePassword,  // or omit and use generateLink instead
-  email_confirm: true,           // skip confirmation email
-  user_metadata: {
-    display_name: user.name,     // used for contact search
-    avatar_url: user.avatarUrl,
-  },
-});
-
-// Store data.user.id in your own DB — this is the UUID you pass as userData.id
-const supabaseUserId = data.user.id;
-```
-
-> **Important:** The `display_name` in `user_metadata` is what populates `profiles.display_name`. This is the field other users search by in the Contacts dialog. Make sure it is set at creation time.
-
-#### Token expiry
-
-Supabase JWTs are typically valid for 1 hour. If your users have long sessions, refresh the token before it expires and re-render `<QuickChat>` with the updated `accessToken`:
-
-```tsx
-// The component re-runs setSession whenever accessToken changes
 <QuickChat
-  ...
-  userData={{ ...userData, accessToken: latestToken }}
+  supabaseUrl={import.meta.env.VITE_SUPABASE_URL}
+  supabaseAnonKey={import.meta.env.VITE_SUPABASE_ANON_KEY}
+  authMode="external"
+  userData={{
+    id: session.user.id,                                    // Supabase UUID — required
+    name: session.user.user_metadata.display_name ?? session.user.email,
+    avatar: session.user.user_metadata.avatar_url,
+    email: session.user.email,
+    accessToken: session.access_token,                      // required
+    refreshToken: session.refresh_token,                    // required for auto-refresh
+  }}
 />
 ```
+
+Full guide with token refresh, OAuth setup, and profile sync: [docs/external-auth.md](docs/external-auth.md)
+
+---
+
+## Detailed Guides
+
+| Guide | When to use |
+|---|---|
+| [Quick Start](docs/quick-start.md) | Fresh project, built-in auth, Lovable from scratch |
+| [External Auth](docs/external-auth.md) | Already have Supabase Auth, want same-user chat |
+| [Lovable Existing Schema](docs/lovable-existing-schema.md) | Lovable project with existing `profiles` table |
+| [Separate Supabase Project](docs/advanced-separate-project.md) | Complete data isolation, separate billing |
 
 ---
 
