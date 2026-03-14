@@ -7,7 +7,6 @@ import { useProfile } from "@/hooks/useProfile";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -97,8 +96,8 @@ export const ChatSidebar = ({ activeConversationId, onSelectConversation, onUnre
           </Avatar>
           <h1 className="text-lg font-bold text-foreground">Chats</h1>
           {totalUnread > 0 && (
-            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-medium text-primary-foreground">
-              {totalUnread}
+            <span className="flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-primary px-1.5 text-xs font-medium text-primary-foreground whitespace-nowrap">
+              {formatCount(totalUnread)}
             </span>
           )}
         </div>
@@ -129,7 +128,7 @@ export const ChatSidebar = ({ activeConversationId, onSelectConversation, onUnre
         </div>
       </div>
 
-      <ScrollArea className="flex-1">
+      <div className="flex-1 overflow-y-auto">
         {isLoading && <div className="p-4 text-center text-muted-foreground">Loading...</div>}
         {!isLoading && filtered.length === 0 && (
           <div className="p-4 text-center text-muted-foreground">
@@ -149,7 +148,7 @@ export const ChatSidebar = ({ activeConversationId, onSelectConversation, onUnre
             onToggleMute={() => toggleMute(conv.id)}
           />
         ))}
-      </ScrollArea>
+      </div>
 
       <ContactsDialog open={contactsOpen} onOpenChange={setContactsOpen} onStartChat={onSelectConversation} />
       <NewGroupDialog open={groupOpen} onOpenChange={setGroupOpen} onCreated={onSelectConversation} />
@@ -172,6 +171,11 @@ function getConversationAvatar(conv: ConversationWithDetails, currentUserId: str
 
 function getInitials(name: string) {
   return name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2);
+}
+
+function formatCount(n: number): string {
+  if (n >= 1000) return `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k`;
+  return String(n);
 }
 
 const ConversationItem = ({
@@ -214,7 +218,7 @@ const ConversationItem = ({
       <ContextMenuTrigger asChild>
         <button
           onClick={onClick}
-          className={`flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-accent ${
+          className={`flex w-full items-center gap-3 pl-4 pr-5 py-3 text-left transition-colors hover:bg-accent ${
             isActive ? "bg-chat-active text-chat-active-foreground hover:bg-chat-active" : ""
           }`}
         >
@@ -227,20 +231,20 @@ const ConversationItem = ({
               <span className="absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full border-2 border-background bg-online" />
             )}
           </div>
-          <div className="flex-1 overflow-hidden">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5 truncate">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center">
+              <div className="flex flex-1 min-w-0 items-center gap-1.5">
                 <span className="font-semibold truncate">{name}</span>
-                {pinned && <Pin className="h-3 w-3 text-muted-foreground rotate-45" />}
-                {muted && <BellOff className="h-3 w-3 text-muted-foreground" />}
+                {pinned && <Pin className="h-3 w-3 shrink-0 text-muted-foreground rotate-45" />}
+                {muted && <BellOff className="h-3 w-3 shrink-0 text-muted-foreground" />}
               </div>
-              <span className={`text-xs whitespace-nowrap ${isActive ? "text-chat-active-foreground/70" : "text-muted-foreground"}`}>{time}</span>
+              <span className={`shrink-0 ml-2 text-xs whitespace-nowrap ${isActive ? "text-chat-active-foreground/70" : "text-muted-foreground"}`}>{time}</span>
             </div>
-            <div className="flex items-center justify-between">
-              <span className={`text-sm truncate ${isActive ? "text-chat-active-foreground/70" : "text-muted-foreground"}`}>{lastMsgText}</span>
+            <div className="flex items-center">
+              <span className={`flex-1 min-w-0 text-sm truncate ${isActive ? "text-chat-active-foreground/70" : "text-muted-foreground"}`}>{lastMsgText}</span>
               {conv.unread_count > 0 && !isActive && (
-                <span className="ml-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-medium text-primary-foreground">
-                  {conv.unread_count}
+                <span className="shrink-0 ml-2 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-primary px-1.5 text-xs font-medium text-primary-foreground whitespace-nowrap">
+                  {formatCount(conv.unread_count)}
                 </span>
               )}
             </div>
