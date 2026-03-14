@@ -1,6 +1,6 @@
 {
   "name": "quick-chat-react",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Drop-in React chat component backed by Supabase. Real-time messaging, group chats, voice messages, file uploads, emoji reactions, read receipts, and unread badge — all via props.",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -19,10 +19,10 @@
     "README.md"
   ],
   "repository": {
-  "type": "git",
-  "url": "https://github.com/AndreyKornyusko/quick-chat-react"
+    "type": "git",
+    "url": "https://github.com/AndreyKornyusko/quick-chat-react"
   },
-   "homepage": "https://quick-chat-react.vercel.app",
+  "homepage": "https://quick-chat-react.vercel.app",
   "keywords": [
     "react",
     "chat",
