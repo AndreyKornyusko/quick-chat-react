@@ -227,7 +227,7 @@ export function DocsPage() {
           <h3>Step 3 — Run the migrations</h3>
           <p>
             Go to your Supabase project → <strong>SQL Editor</strong> → paste and run the files from{" "}
-            <code>/supabase/migrations/</code> <strong>in filename order</strong>.
+            <a href="https://github.com/AndreyKornyusko/quick-chat-react/tree/main/supabase/migrations" target="_blank" rel="noopener noreferrer"><code>/supabase/migrations/</code></a> <strong>in filename order</strong>.
           </p>
           <Note>
             <strong>Already have a <code>profiles</code> table?</strong> (Common in Lovable projects.)
@@ -250,6 +250,11 @@ export default function App() {
   );
 }`}</Code>
           <p>That's it. Users can sign up and start chatting.</p>
+          <p style={{ marginTop: "1rem" }}>
+            <a href="https://github.com/AndreyKornyusko/quick-chat-react/blob/main/docs/quick-start.md" target="_blank" rel="noopener noreferrer">
+              → Full Quick Start guide on GitHub
+            </a>
+          </p>
 
           <h3>Disable Email Confirmation (Recommended)</h3>
           <p>So users can log in immediately after signing up:</p>
@@ -308,7 +313,8 @@ const { data: { session } } = await supabase.auth.getSession();
 />`}</Code>
           <p>
             Full guide with token refresh, OAuth setup, and profile sync:{" "}
-            <a href="#guide-external-auth">External Auth guide</a>.
+            <a href="#guide-external-auth">External Auth guide</a> or{" "}
+            <a href="https://github.com/AndreyKornyusko/quick-chat-react/blob/main/docs/external-auth.md" target="_blank" rel="noopener noreferrer">view on GitHub</a>.
           </p>
         </section>
 
@@ -376,6 +382,12 @@ const { data: { session } } = await supabase.auth.getSession();
               <tr><td><code>style</code></td><td><code>CSSProperties</code></td><td>—</td><td>Inline styles (highest priority).</td></tr>
             </tbody>
           </table>
+
+          <p>
+            <a href="https://github.com/AndreyKornyusko/quick-chat-react/blob/main/docs/ChatButton.md" target="_blank" rel="noopener noreferrer">
+              → Full ChatButton guide on GitHub
+            </a>
+          </p>
 
           <h4>How the unread count works</h4>
           <p>When <code>userData</code> is provided (and no <code>unreadCount</code> override):</p>
@@ -461,6 +473,12 @@ const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
               <tr><td><code>style</code></td><td><code>CSSProperties</code></td><td>—</td><td>Inline styles.</td></tr>
             </tbody>
           </table>
+
+          <p>
+            <a href="https://github.com/AndreyKornyusko/quick-chat-react/blob/main/docs/UserAvatar.md" target="_blank" rel="noopener noreferrer">
+              → Full UserAvatar guide on GitHub
+            </a>
+          </p>
 
           <H3 id="ref-userdata">UserData</H3>
           <table className="docs-table">
@@ -563,6 +581,11 @@ export function useExternalChatAuth() {
               <tr><td>Different Supabase project URLs</td><td>Auth works in app but fails in chat</td><td>Ensure both use the same <code>VITE_SUPABASE_URL</code></td></tr>
             </tbody>
           </table>
+          <p style={{ marginTop: "1rem" }}>
+            <a href="https://github.com/AndreyKornyusko/quick-chat-react/blob/main/docs/external-auth.md" target="_blank" rel="noopener noreferrer">
+              → Full External Auth guide on GitHub
+            </a>
+          </p>
 
           {/* Startup Base Guide */}
           <H3 id="guide-startup">Using quick-chat-react as a Startup Base</H3>
@@ -603,6 +626,11 @@ CREATE POLICY "Team members can view team profiles"
   USING (
     team_id = (SELECT team_id FROM public.profiles WHERE id = auth.uid())
   );`}</Code>
+          <p style={{ marginTop: "1rem" }}>
+            <a href="https://github.com/AndreyKornyusko/quick-chat-react/blob/main/docs/startup-base.md" target="_blank" rel="noopener noreferrer">
+              → Full Startup Base guide on GitHub
+            </a>
+          </p>
 
           {/* Lovable Guide */}
           <H3 id="guide-lovable">Lovable Projects — Existing profiles Table</H3>
@@ -628,6 +656,11 @@ CREATE POLICY "Team members can view team profiles"
             After running the additive migration, follow the{" "}
             <a href="#guide-external-auth">External Auth guide</a> — your Lovable project already has Supabase Auth.
           </Note>
+          <p style={{ marginTop: "1rem" }}>
+            <a href="https://github.com/AndreyKornyusko/quick-chat-react/blob/main/supabase/migrations/additive-for-existing-profiles.sql" target="_blank" rel="noopener noreferrer">
+              → View additive-for-existing-profiles.sql on GitHub
+            </a>
+          </p>
 
           <h4>What changes in your schema</h4>
           <table className="docs-table">
@@ -644,6 +677,11 @@ CREATE POLICY "Team members can view team profiles"
               <tr><td>Storage buckets</td><td><code>avatars</code> and <code>chat-media</code> (no-op if already exists)</td></tr>
             </tbody>
           </table>
+          <p style={{ marginTop: "1rem" }}>
+            <a href="https://github.com/AndreyKornyusko/quick-chat-react/blob/main/docs/lovable-existing-schema.md" target="_blank" rel="noopener noreferrer">
+              → Full Lovable Schema guide on GitHub
+            </a>
+          </p>
 
           {/* Separate Project Guide */}
           <H3 id="guide-separate">Advanced — Separate Supabase Project</H3>
@@ -712,6 +750,11 @@ Frontend receives { accessToken, refreshToken, supabaseUserId }
             Shadow users in Project B have no password — they can only receive sessions through your{" "}
             <code>/api/chat-token</code> endpoint.
           </Note>
+          <p style={{ marginTop: "1rem" }}>
+            <a href="https://github.com/AndreyKornyusko/quick-chat-react/blob/main/docs/advanced-separate-project.md" target="_blank" rel="noopener noreferrer">
+              → Full Separate Project guide on GitHub
+            </a>
+          </p>
         </section>
 
         {/* ── Security ──────────────────────────────────────────────── */}

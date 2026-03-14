@@ -38,6 +38,21 @@
   color: var(--color-brand);
 }
 
+.footer__link-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  font-weight: 500;
+  transition: color var(--transition);
+}
+
+.footer__link-btn:hover {
+  color: var(--color-brand);
+}
+
 .footer__copy {
   font-size: 0.825rem;
   color: var(--color-text-muted);

@@ -1,6 +1,10 @@
 import "./Footer.css";
 
-export function Footer() {
+interface FooterProps {
+  onTabChange: (tab: "home" | "chat" | "docs") => void;
+}
+
+export function Footer({ onTabChange }: FooterProps) {
   return (
     <footer className="footer">
       <div className="container footer__inner">
@@ -21,7 +25,7 @@ export function Footer() {
           >
             npm
           </a>
-          <a href="#features">Docs</a>
+          <button className="footer__link-btn" onClick={() => onTabChange("docs")}>Docs</button>
           <a href="#team">Team</a>
         </nav>
 

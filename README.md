@@ -1,14 +1,50 @@
 # quick-chat-react
 
+![npm version](https://img.shields.io/npm/v/quick-chat-react)
+![npm downloads](https://img.shields.io/npm/dm/quick-chat-react)
+![license](https://img.shields.io/npm/l/quick-chat-react)
+
 Drop-in real-time chat for React apps built on **[Supabase](https://supabase.com)**.
 
-**[Live Demo →](https://quick-chat-react.vercel.app)**
+[![Live Demo](https://img.shields.io/badge/demo-live-green)](https://quick-chat-react.vercel.app)
 
-> **Requires Supabase.** If your project uses Firebase, Auth0, or a custom backend, this library is not the right fit.
+## Preview
+
+![Quick Chat Preview](./docs/quick-chat-react-preview.png)
+
+## Installation
+
+```bash
+# npm
+npm install quick-chat-react
+
+# yarn
+yarn add quick-chat-react
+
+# pnpm
+pnpm add quick-chat-react
+
+**Requires Supabase.** If your project uses Firebase, Auth0, or a custom backend, this library is not the right fit.
 
 **Features:** real-time messaging · group conversations · voice messages · file & photo uploads · emoji reactions · read receipts · online status · contact management
 
 ---
+
+### Why quick-chat-react?
+
+• ⚡ Add full chat to your app in minutes  
+• 🔐 Uses your existing Supabase Auth users  
+• 💬 Real-time messaging powered by Supabase Realtime  
+• 📁 File uploads, voice messages, reactions, and groups included  
+• 🎨 Works with any React UI layout
+
+## Perfect for
+
+- SaaS apps
+- Startup MVPs
+- Internal team tools
+- Community platforms
+- Lovable + Supabase projects
 
 ## Use as your startup's base
 
@@ -26,7 +62,7 @@ ALTER TABLE public.profiles
 
 Then read your custom fields with your own Supabase client alongside the library — no extra configuration needed. Gate library features by plan, drive onboarding flows from `onboarded`, restrict data by `team_id` via RLS — the library stays out of the way.
 
-**→ Full guide: [Using quick-chat-react as a Startup Base](docs/startup-base.md)**
+**→ Full guide: [Using quick-chat-react as a Startup Base](https://github.com/AndreyKornyusko/quick-chat-react/blob/main/docs/startup-base.md)**
 
 ---
 
@@ -45,8 +81,8 @@ Then read your custom fields with your own Supabase client alongside the library
 | Supabase Auth (email/password) | ✅ Yes |
 | Supabase OAuth (Google, GitHub) | ✅ Yes |
 | Lovable + Supabase (no `profiles` table yet) | ✅ Yes |
-| Lovable + Supabase (`profiles` table already exists) | ✅ Yes — [use the additive migration](docs/lovable-existing-schema.md) |
-| Separate Supabase project for chat | ⚠️ Advanced — [see guide](docs/advanced-separate-project.md) |
+| Lovable + Supabase (`profiles` table already exists) | ✅ Yes — [use the additive migration](https://github.com/AndreyKornyusko/quick-chat-react/blob/main/docs/lovable-existing-schema.md) |
+| Separate Supabase project for chat | ⚠️ Advanced — [see guide](https://github.com/AndreyKornyusko/quick-chat-react/blob/main/docs/advanced-separate-project.md) |
 | Firebase / Auth0 / custom auth backend | ❌ Not supported |
 
 ---
@@ -62,7 +98,7 @@ npm install quick-chat-react
 import "quick-chat-react/style.css";
 ```
 
-Run the migrations from [`/supabase/migrations/`](./supabase/migrations) in filename order via Supabase SQL Editor, then:
+Run the migrations from [`/supabase/migrations/`](https://github.com/AndreyKornyusko/quick-chat-react/tree/main/supabase/migrations) in filename order via Supabase SQL Editor, then:
 
 ```tsx
 import { QuickChat } from "quick-chat-react";
@@ -77,9 +113,9 @@ export default function App() {
 }
 ```
 
-> **Already have a `profiles` table?** (Lovable-generated projects usually do.) Skip the standard migration files and run [`additive-for-existing-profiles.sql`](./supabase/migrations/additive-for-existing-profiles.sql) instead. See the [Lovable guide](docs/lovable-existing-schema.md).
+> **Already have a `profiles` table?** (Lovable-generated projects usually do.) Skip the standard migration files and run [`additive-for-existing-profiles.sql`](https://github.com/AndreyKornyusko/quick-chat-react/blob/main/supabase/migrations/additive-for-existing-profiles.sql) instead. See the [Lovable guide](https://github.com/AndreyKornyusko/quick-chat-react/blob/main/docs/lovable-existing-schema.md).
 
-Full step-by-step: [docs/quick-start.md](docs/quick-start.md)
+Full step-by-step: [docs/quick-start.md](https://github.com/AndreyKornyusko/quick-chat-react/blob/main/docs/quick-start.md)
 
 ---
 
@@ -122,7 +158,7 @@ const { data: { session } } = await supabase.auth.getSession();
 />
 ```
 
-Full guide with token refresh, OAuth setup, and profile sync: [docs/external-auth.md](docs/external-auth.md)
+Full guide with token refresh, OAuth setup, and profile sync: [docs/external-auth.md](https://github.com/AndreyKornyusko/quick-chat-react/blob/main/docs/external-auth.md)
 
 ---
 
@@ -130,11 +166,11 @@ Full guide with token refresh, OAuth setup, and profile sync: [docs/external-aut
 
 | Guide | When to use |
 |---|---|
-| [Quick Start](docs/quick-start.md) | Fresh project, built-in auth, Lovable from scratch |
-| [Startup Base](docs/startup-base.md) | Extending profiles, onboarding, plan gating, team isolation |
-| [External Auth](docs/external-auth.md) | Already have Supabase Auth, want same-user chat |
-| [Lovable Existing Schema](docs/lovable-existing-schema.md) | Lovable project with existing `profiles` table |
-| [Separate Supabase Project](docs/advanced-separate-project.md) | Complete data isolation, separate billing |
+| [Quick Start](https://github.com/AndreyKornyusko/quick-chat-react/blob/main/docs/quick-start.md) | Fresh project, built-in auth, Lovable from scratch |
+| [Startup Base](https://github.com/AndreyKornyusko/quick-chat-react/blob/main/docs/startup-base.md) | Extending profiles, onboarding, plan gating, team isolation |
+| [External Auth](https://github.com/AndreyKornyusko/quick-chat-react/blob/main/docs/external-auth.md) | Already have Supabase Auth, want same-user chat |
+| [Lovable Existing Schema](https://github.com/AndreyKornyusko/quick-chat-react/blob/main/docs/lovable-existing-schema.md) | Lovable project with existing `profiles` table |
+| [Separate Supabase Project](https://github.com/AndreyKornyusko/quick-chat-react/blob/main/docs/advanced-separate-project.md) | Complete data isolation, separate billing |
 
 ---
 
@@ -163,7 +199,7 @@ const { data: { session } } = await supabase.auth.getSession();
 />
 ```
 
-Full usage and customization guide: [docs/ChatButton.md](docs/ChatButton.md)
+Full usage and customization guide: [docs/ChatButton.md](https://github.com/AndreyKornyusko/quick-chat-react/blob/main/docs/ChatButton.md)
 
 ---
 
@@ -195,7 +231,7 @@ export default function App() {
 }
 ```
 
-Full usage and customization guide: [docs/UserAvatar.md](docs/UserAvatar.md)
+Full usage and customization guide: [docs/UserAvatar.md](https://github.com/AndreyKornyusko/quick-chat-react/blob/main/docs/UserAvatar.md)
 
 ---
 

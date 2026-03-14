@@ -18,6 +18,11 @@
     "dist",
     "README.md"
   ],
+  "repository": {
+  "type": "git",
+  "url": "https://github.com/AndreyKornyusko/quick-chat-react"
+  },
+   "homepage": "https://quick-chat-react.vercel.app",
   "keywords": [
     "react",
     "chat",

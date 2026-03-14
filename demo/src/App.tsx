@@ -64,7 +64,7 @@ export default function App() {
             onLogin={login}
             onOpenChat={() => setIsChatOpen(true)}
           />
-          <Footer />
+          <Footer onTabChange={setActiveTab} />
         </main>
       ) : activeTab === "chat" ? (
         <InnerChatPage
