@@ -1,4 +1,4 @@
-import { QuickChat, ChatButton } from "quick-chat-react";
+import { QuickChat } from "quick-chat-react";
 import "./InnerChatPage.css";
 
 interface InnerChatPageProps {
@@ -7,7 +7,7 @@ interface InnerChatPageProps {
   onOpenModal: () => void;
 }
 
-export function InnerChatPage({ supabaseUrl, supabaseAnonKey, onOpenModal }: InnerChatPageProps) {
+export function InnerChatPage({ supabaseUrl, supabaseAnonKey }: InnerChatPageProps) {
   return (
     <div className="inner-chat-page">
       <QuickChat
@@ -16,14 +16,6 @@ export function InnerChatPage({ supabaseUrl, supabaseAnonKey, onOpenModal }: Inn
         authMode="built-in"
         height="100%"
         width="100%"
-      />
-      <ChatButton
-        supabaseUrl={supabaseUrl}
-        supabaseAnonKey={supabaseAnonKey}
-        onClick={onOpenModal}
-        floating={true}
-        position="bottom-right"
-        label="Open in modal"
       />
     </div>
   );

@@ -7,6 +7,7 @@ import { Hero } from "./components/Hero/Hero";
 import { Features } from "./components/Features/Features";
 import { Team } from "./components/Team/Team";
 import { Footer } from "./components/Footer/Footer";
+import { ChatButton } from "quick-chat-react";
 import { ChatModal } from "./components/ChatModal/ChatModal";
 import { InnerChatPage } from "./components/InnerChatPage/InnerChatPage";
 import { DocsPage } from "./components/DocsPage/DocsPage";
@@ -65,6 +66,14 @@ export default function App() {
             onOpenChat={() => setIsChatOpen(true)}
           />
           <Footer onTabChange={setActiveTab} />
+          <ChatButton
+            supabaseUrl={SUPABASE_URL}
+            supabaseAnonKey={SUPABASE_ANON_KEY}
+            userData={currentUser ?? undefined}
+            onClick={() => setIsChatOpen(true)}
+            floating={true}
+            position="bottom-right"
+          />
         </main>
       ) : activeTab === "chat" ? (
         <InnerChatPage
