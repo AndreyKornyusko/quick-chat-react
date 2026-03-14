@@ -623,6 +623,7 @@ export const ChatWindow = ({ conversationId, onBack }: ChatWindowProps) => {
                           onDelete={() => group.msgs.forEach(m => deleteMessage.mutate({ id: m.id, conversationId: conversationId! }))}
                           onForward={() => setForwardMsg(firstMsg)}
                           onReact={(emoji) => handleReact(firstMsg.id, emoji)}
+                          allowReactions={config.allowReactions}
                         >
                           <div className={`relative rounded-2xl px-1 py-1 ${isOwn ? "bg-chat-bubble-out text-chat-bubble-out-foreground rounded-br-md" : "bg-chat-bubble-in text-chat-bubble-in-foreground rounded-bl-md"}`}>
                             {conversation?.type === "group" && !isOwn && (
@@ -737,7 +738,7 @@ export const ChatWindow = ({ conversationId, onBack }: ChatWindowProps) => {
         />
 
         {/* Emoji button: always on desktop, only when typing on mobile */}
-        <div className={`relative ${!text.trim() ? "hidden md:block" : ""}`} ref={emojiPickerRef}>
+        {config.allowReactions && <div className={`relative ${!text.trim() ? "hidden md:block" : ""}`} ref={emojiPickerRef}>
           <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full md:rounded-md shrink-0" onClick={() => setShowEmojiPicker((v) => !v)}>
             <Smile className="h-5 w-5" />
           </Button>
@@ -754,7 +755,7 @@ export const ChatWindow = ({ conversationId, onBack }: ChatWindowProps) => {
               </div>
             </>
           )}
-        </div>
+        </div>}
 
         {/* Send button when typing, Mic button when empty (mobile only swaps) */}
         {text.trim() ? (
@@ -914,6 +915,7 @@ const MessageBubble = ({
   onCancel?: () => void;
   onScrollToReply?: (messageId: string) => void;
 }) => {
+  const config = useConfig();
   if (msg.is_deleted) {
     return (
       <div className={`mb-1 flex ${isOwn ? "justify-end" : "justify-start"}`}>
@@ -957,6 +959,7 @@ const MessageBubble = ({
           onDelete={onDelete}
           onForward={onForward}
           onReact={onReact}
+          allowReactions={config.allowReactions}
         >
           {isEmojiOnly ? (
             <div className="relative px-1 py-1">
@@ -975,7 +978,7 @@ const MessageBubble = ({
                     ? <Loader2 className="h-3 w-3 animate-spin" />
                     : msg._optimistic && msg._status === "failed"
                     ? <AlertCircle className="h-3 w-3 text-destructive" />
-                    : hasReads ? <CheckCheck className="h-3 w-3 text-read" /> : <Check className="h-3 w-3" />
+                    : config.showReadReceipts && hasReads ? <CheckCheck className="h-3 w-3 text-read" /> : <Check className="h-3 w-3" />
                 )}
               </div>
             </div>
@@ -1075,11 +1078,13 @@ const MessageBubble = ({
         )}
 
         {/* Reactions display */}
-        <MessageReactions
-          reactions={reactions}
-          onToggle={(emoji) => onReact(emoji)}
-          isOwn={isOwn}
-        />
+        {config.allowReactions && (
+          <MessageReactions
+            reactions={reactions}
+            onToggle={(emoji) => onReact(emoji)}
+            isOwn={isOwn}
+          />
+        )}
       </div>
     </div>
   );

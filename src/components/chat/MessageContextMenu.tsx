@@ -18,6 +18,7 @@ interface MessageContextMenuProps {
   onDelete: () => void;
   onForward: () => void;
   onReact: (emoji: string) => void;
+  allowReactions?: boolean;
 }
 
 export const MessageContextMenu = ({
@@ -29,6 +30,7 @@ export const MessageContextMenu = ({
   onDelete,
   onForward,
   onReact,
+  allowReactions = true,
 }: MessageContextMenuProps) => {
   const [open, setOpen] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -213,7 +215,7 @@ export const MessageContextMenu = ({
           >
             <div className={`${isMobile ? "rounded-t-2xl w-full max-w-[320px]" : "rounded-xl"} border border-border bg-popover shadow-2xl overflow-hidden`}>
               {/* Quick emoji bar */}
-              {!showPicker && (
+              {allowReactions && !showPicker && (
                 <div className="flex items-center gap-1 px-3 py-2 border-b border-border">
                   {QUICK_EMOJIS.map((emoji) => (
                     <button
@@ -234,7 +236,7 @@ export const MessageContextMenu = ({
               )}
 
               {/* Emoji picker */}
-              {showPicker && (
+              {allowReactions && showPicker && (
                 <div className="max-h-[350px] overflow-hidden">
                   <Picker
                     data={data}

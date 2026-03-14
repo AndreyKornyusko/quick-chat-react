@@ -283,6 +283,7 @@ For a user to appear in search results they must have a `profiles` row in your S
 | `email` | `string` | No | User's email address. |
 | `description` | `string` | No | Short bio or role shown on profile. |
 | `accessToken` | `string` | Yes (external mode) | Supabase JWT. Required for `authMode="external"`. |
+| `refreshToken` | `string` | Yes (external mode) | Supabase refresh token. Required alongside `accessToken` — omitting it causes the session to silently expire after 1 hour. |
 
 ### `<ChatButton>`
 
@@ -302,6 +303,8 @@ For a user to appear in search results they must have a `profiles` row in your S
 | `iconColor` | `string` | — | Icon color (CSS color value). |
 | `icon` | `ReactNode` | — | Custom icon element. |
 | `label` | `string` | `"Open chat"` | Accessible aria-label for the button. |
+| `className` | `string` | — | Extra CSS classes on the button element. |
+| `style` | `CSSProperties` | — | Inline styles on the button element. |
 
 ### `<UserAvatar>`
 
