@@ -58,10 +58,11 @@ export const QuickChat = ({
   mobileLayout,
   onUnreadCountChange,
   onConversationSelect,
+  onUploadFile,
 }: QuickChatProps) => {
   const config: QuickChatConfig = useMemo(
-    () => ({ showGroups, allowVoiceMessages, allowFileUpload, allowReactions, showOnlineStatus, showReadReceipts }),
-    [showGroups, allowVoiceMessages, allowFileUpload, allowReactions, showOnlineStatus, showReadReceipts]
+    () => ({ showGroups, allowVoiceMessages, allowFileUpload, allowReactions, showOnlineStatus, showReadReceipts, onUploadFile }),
+    [showGroups, allowVoiceMessages, allowFileUpload, allowReactions, showOnlineStatus, showReadReceipts, onUploadFile]
   );
 
   return (

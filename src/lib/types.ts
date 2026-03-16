@@ -32,6 +32,13 @@ export interface QuickChatConfig {
   allowReactions: boolean;
   showOnlineStatus: boolean;
   showReadReceipts: boolean;
+  /**
+   * Optional custom file upload handler.
+   * When provided, the lib skips Supabase Storage and calls this instead.
+   * Receives the file/blob and its type, must return the public (or signed) URL.
+   * Use this to store files in S3, Cloudinary, or a private Supabase bucket.
+   */
+  onUploadFile?: (file: File | Blob, type: "image" | "video" | "file" | "voice") => Promise<string>;
 }
 
 export interface QuickChatProps {
@@ -67,6 +74,31 @@ export interface QuickChatProps {
   onUnreadCountChange?: (count: number) => void;
   /** Callback fired when a conversation is selected */
   onConversationSelect?: (id: string) => void;
+  /**
+   * Optional custom file upload handler.
+   * When provided, the lib skips Supabase Storage and calls this instead.
+   * Receives the file/blob and its type, must return the public (or signed) URL.
+   * Use this to store files in S3, Cloudinary, or a private Supabase bucket with signed URLs.
+   *
+   * @example — private Supabase bucket with signed URLs
+   * onUploadFile={async (file, type) => {
+   *   const path = `${userId}/${Date.now()}`;
+   *   await supabase.storage.from("chat-media").upload(path, file);
+   *   const { data } = await supabase.storage.from("chat-media").createSignedUrl(path, 3600);
+   *   return data.signedUrl;
+   * }}
+   *
+   * @example — Cloudinary
+   * onUploadFile={async (file) => {
+   *   const form = new FormData();
+   *   form.append("file", file);
+   *   form.append("upload_preset", "your_preset");
+   *   const res = await fetch("https://api.cloudinary.com/v1_1/yourcloud/upload", { method: "POST", body: form });
+   *   const { secure_url } = await res.json();
+   *   return secure_url;
+   * }}
+   */
+  onUploadFile?: (file: File | Blob, type: "image" | "video" | "file" | "voice") => Promise<string>;
 }
 
 export interface UserAvatarProps {

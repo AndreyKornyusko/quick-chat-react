@@ -344,6 +344,7 @@ const { data: { session } } = await supabase.auth.getSession();
               <tr><td><code>mobileLayout</code></td><td><code>boolean</code></td><td><code>false</code></td><td>Single-column layout with back navigation — ideal for chat modals, floating panels, or narrow containers.</td></tr>
               <tr><td><code>onUnreadCountChange</code></td><td><code>(count: number) =&gt; void</code></td><td>—</td><td>Fires when unread count changes.</td></tr>
               <tr><td><code>onConversationSelect</code></td><td><code>(id: string) =&gt; void</code></td><td>—</td><td>Fires when a conversation is selected.</td></tr>
+              <tr><td><code>onUploadFile</code></td><td><code>(file, type) =&gt; Promise&lt;string&gt;</code></td><td>—</td><td>Custom upload handler. Skips Supabase Storage — use for S3, Cloudinary, or private bucket with signed URLs. Must return the file URL.</td></tr>
             </tbody>
           </table>
 
@@ -818,6 +819,71 @@ Frontend receives { accessToken, refreshToken, supabaseUserId }
               a session token — send it over HTTPS, don't log it, and expire it appropriately.
             </li>
           </ul>
+
+          <H3 id="security-storage">Public chat-media bucket (default)</H3>
+          <p>
+            By default, uploaded files (photos, voice messages, documents) are stored in a <strong>public</strong> Supabase
+            Storage bucket — any direct file URL works without authentication. This is fine for demos and prototyping.
+          </p>
+          <p>
+            <strong>For production apps with sensitive data</strong>, make the bucket private and generate signed URLs
+            using the <code>onUploadFile</code> prop:
+          </p>
+          <ol className="docs-list">
+            <li>
+              Apply the optional migration:{" "}
+              <code>supabase/migrations/20260316000000_optional_private_chat_media.sql</code>
+              <br />
+              <small>This sets the bucket to private and adds an RLS policy allowing only conversation members to access files.</small>
+            </li>
+            <li>
+              Pass <code>onUploadFile</code> to <code>&lt;QuickChat&gt;</code> to handle the upload and return a signed URL.
+            </li>
+          </ol>
+          <Code>{`// Private Supabase bucket with 1-hour signed URLs
+<QuickChat
+  supabaseUrl={url}
+  supabaseAnonKey={key}
+  authMode="external"
+  userData={currentUser}
+  onUploadFile={async (file) => {
+    const path = \`\${currentUser.id}/\${Date.now()}-\${Math.random()}\`;
+    await supabase.storage.from("chat-media").upload(path, file);
+    const { data } = await supabase.storage
+      .from("chat-media")
+      .createSignedUrl(path, 3600);
+    return data.signedUrl;
+  }}
+/>
+
+// Amazon S3 (via your own backend endpoint)
+onUploadFile={async (file) => {
+  const form = new FormData();
+  form.append("file", file);
+  const res = await fetch("/api/upload/s3", { method: "POST", body: form });
+  const { url } = await res.json();
+  return url;
+}}
+
+// Cloudinary
+onUploadFile={async (file) => {
+  const form = new FormData();
+  form.append("file", file);
+  form.append("upload_preset", "your_unsigned_preset");
+  const res = await fetch(
+    "https://api.cloudinary.com/v1_1/your_cloud/upload",
+    { method: "POST", body: form }
+  );
+  const { secure_url } = await res.json();
+  return secure_url;
+}}`}</Code>
+
+          <H3 id="security-profiles">Profile visibility</H3>
+          <p>
+            All authenticated users can search and view all profiles by default. This is required so users
+            can find someone to start a conversation with. For stricter privacy, add a <code>discoverability</code> boolean
+            to your <code>profiles</code> table and filter search results via a Supabase Edge Function or your own backend.
+          </p>
         </section>
 
       </main>

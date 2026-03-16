@@ -326,6 +326,7 @@ For a user to appear in search results they must have a `profiles` row in your S
 | `mobileLayout` | `boolean` | `false` | Single-column layout with back navigation — ideal for chat modals, floating panels, or narrow containers. |
 | `onUnreadCountChange` | `(count: number) => void` | — | Fires when unread count changes. |
 | `onConversationSelect` | `(id: string) => void` | — | Fires when a conversation is selected. |
+| `onUploadFile` | `(file: File \| Blob, type: "image" \| "video" \| "file" \| "voice") => Promise<string>` | — | Custom upload handler — skips Supabase Storage. Use for S3, Cloudinary, or private bucket with signed URLs. Must return the file URL. |
 
 ### `UserData`
 
@@ -387,3 +388,60 @@ For a user to appear in search results they must have a `profiles` row in your S
 - The **anon key** is safe to expose on the frontend. All access is controlled by Supabase Row Level Security (RLS) policies — users can only read and write their own data.
 - The **service role key** must never be exposed on the frontend. Use it only in your backend to generate access tokens.
 - In external mode, `accessToken` grants the user access to Supabase. Treat it like a session token — send it over HTTPS, don't log it, and expire it appropriately.
+
+### Public chat-media bucket (default)
+
+By default, uploaded files (photos, voice messages, documents) are stored in a **public** Supabase Storage bucket. Any direct file URL works without authentication — this is intentional for demo/prototyping convenience.
+
+**For production apps with sensitive data**, make the bucket private and use signed URLs via the `onUploadFile` prop:
+
+```tsx
+// 1. Apply the optional migration:
+//    supabase/migrations/20260316000000_optional_private_chat_media.sql
+
+// 2. Pass onUploadFile to generate signed URLs instead of public ones:
+<QuickChat
+  supabaseUrl={url}
+  supabaseAnonKey={key}
+  authMode="external"
+  userData={currentUser}
+  onUploadFile={async (file) => {
+    const path = `${currentUser.id}/${Date.now()}-${Math.random()}`;
+    await supabase.storage.from("chat-media").upload(path, file);
+    const { data } = await supabase.storage
+      .from("chat-media")
+      .createSignedUrl(path, 3600); // 1 hour expiry
+    return data.signedUrl;
+  }}
+/>
+```
+
+You can also use `onUploadFile` to store files in **Amazon S3** or **Cloudinary**:
+
+```tsx
+// Amazon S3 (via your backend)
+onUploadFile={async (file) => {
+  const form = new FormData();
+  form.append("file", file);
+  const res = await fetch("/api/upload/s3", { method: "POST", body: form });
+  const { url } = await res.json();
+  return url;
+}}
+
+// Cloudinary
+onUploadFile={async (file) => {
+  const form = new FormData();
+  form.append("file", file);
+  form.append("upload_preset", "your_unsigned_preset");
+  const res = await fetch(
+    "https://api.cloudinary.com/v1_1/your_cloud/upload",
+    { method: "POST", body: form }
+  );
+  const { secure_url } = await res.json();
+  return secure_url;
+}}
+```
+
+### Profile visibility
+
+All authenticated users can search and view all profiles by default. This is required so users can find someone to chat with. For stricter privacy you can add a `discoverability` boolean to your `profiles` table and filter the search results via a Supabase Edge Function or your own backend.

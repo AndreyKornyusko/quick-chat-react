@@ -299,20 +299,32 @@ export const ChatWindow = ({ conversationId, onBack }: ChatWindowProps) => {
         toast({ title: "File type not allowed", description: `${file.name} is not a supported file type`, variant: "destructive" });
         continue;
       }
-      const path = `${user.id}/${conversationId}/${crypto.randomUUID()}`;
-      const { error } = await supabase.storage.from("chat-media").upload(path, file, { contentType });
-      if (error) {
-        toast({ title: "Upload error", description: `${file.name}: ${error.message}`, variant: "destructive" });
-        continue;
-      }
-      const { data: urlData } = supabase.storage.from("chat-media").getPublicUrl(path);
       const isImage = contentType.startsWith("image/");
       const isVideo = contentType.startsWith("video/");
+      const fileType = isImage ? "image" : isVideo ? "video" : "file";
+      let fileUrl: string;
+      if (config.onUploadFile) {
+        try {
+          fileUrl = await config.onUploadFile(file, fileType);
+        } catch (err: unknown) {
+          toast({ title: "Upload error", description: `${file.name}: ${err instanceof Error ? err.message : "Upload failed"}`, variant: "destructive" });
+          continue;
+        }
+      } else {
+        const path = `${user.id}/${conversationId}/${crypto.randomUUID()}`;
+        const { error } = await supabase.storage.from("chat-media").upload(path, file, { contentType });
+        if (error) {
+          toast({ title: "Upload error", description: `${file.name}: ${error.message}`, variant: "destructive" });
+          continue;
+        }
+        const { data: urlData } = supabase.storage.from("chat-media").getPublicUrl(path);
+        fileUrl = urlData.publicUrl;
+      }
       sendMessage.mutate({
         conversation_id: conversationId,
         content: file.name,
         type: isImage ? "photo" : isVideo ? "video" : "file",
-        file_url: urlData.publicUrl,
+        file_url: fileUrl,
         file_name: file.name,
         file_size: file.size,
       });
@@ -323,18 +335,29 @@ export const ChatWindow = ({ conversationId, onBack }: ChatWindowProps) => {
   const handleVoiceSend = async (blob: Blob, durationMs: number) => {
     if (!conversationId || !user) return;
     const ext = blob.type.includes("webm") ? "webm" : "ogg";
-    const path = `${user.id}/${conversationId}/${crypto.randomUUID()}.${ext}`;
-    const { error } = await supabase.storage.from("chat-media").upload(path, blob, { contentType: blob.type });
-    if (error) {
-      toast({ title: "Upload error", description: error.message, variant: "destructive" });
-      return;
+    let voiceUrl: string;
+    if (config.onUploadFile) {
+      try {
+        voiceUrl = await config.onUploadFile(blob, "voice");
+      } catch (err: unknown) {
+        toast({ title: "Upload error", description: err instanceof Error ? err.message : "Upload failed", variant: "destructive" });
+        return;
+      }
+    } else {
+      const path = `${user.id}/${conversationId}/${crypto.randomUUID()}.${ext}`;
+      const { error } = await supabase.storage.from("chat-media").upload(path, blob, { contentType: blob.type });
+      if (error) {
+        toast({ title: "Upload error", description: error.message, variant: "destructive" });
+        return;
+      }
+      const { data: urlData } = supabase.storage.from("chat-media").getPublicUrl(path);
+      voiceUrl = urlData.publicUrl;
     }
-    const { data: urlData } = supabase.storage.from("chat-media").getPublicUrl(path);
     sendMessage.mutate({
       conversation_id: conversationId,
       content: `Voice message (${Math.ceil(durationMs / 1000)}s)`,
       type: "voice",
-      file_url: urlData.publicUrl,
+      file_url: voiceUrl,
       file_name: `voice.${ext}`,
       file_size: blob.size,
     });
@@ -936,7 +959,8 @@ const MessageBubble = ({
 
   const highlightText = (text: string) => {
     if (!searchQuery) return text;
-    const parts = text.split(new RegExp(`(${searchQuery})`, "gi"));
+    const escaped = searchQuery.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const parts = text.split(new RegExp(`(${escaped})`, "gi"));
     return parts.map((p, i) =>
       p.toLowerCase() === searchQuery.toLowerCase() ? <mark key={i} className="bg-primary/30 rounded px-0.5">{p}</mark> : p
     );
