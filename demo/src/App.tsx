@@ -9,6 +9,7 @@ import { Team } from "./components/Team/Team";
 import { Footer } from "./components/Footer/Footer";
 import { ChatButton } from "quick-chat-react";
 import { ChatModal } from "./components/ChatModal/ChatModal";
+import { ChatFloatingPanel } from "./components/ChatFloatingPanel/ChatFloatingPanel";
 import { InnerChatPage } from "./components/InnerChatPage/InnerChatPage";
 import { DocsPage } from "./components/DocsPage/DocsPage";
 
@@ -28,6 +29,7 @@ function getInitialTheme(): Theme {
 export default function App() {
   const { currentUser, login, logout } = useDemoAuth();
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isFloatingPanelOpen, setIsFloatingPanelOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>("home");
   const [theme, setTheme] = useState<Theme>(getInitialTheme);
 
@@ -70,9 +72,16 @@ export default function App() {
             supabaseUrl={SUPABASE_URL}
             supabaseAnonKey={SUPABASE_ANON_KEY}
             userData={currentUser ?? undefined}
-            onClick={() => setIsChatOpen(true)}
+            onClick={() => setIsFloatingPanelOpen((v) => !v)}
             floating={true}
             position="bottom-right"
+          />
+          <ChatFloatingPanel
+            supabaseUrl={SUPABASE_URL}
+            supabaseAnonKey={SUPABASE_ANON_KEY}
+            currentUser={currentUser}
+            open={isFloatingPanelOpen}
+            onClose={() => setIsFloatingPanelOpen(false)}
           />
         </main>
       ) : activeTab === "chat" ? (

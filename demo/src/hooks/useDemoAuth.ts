@@ -14,7 +14,7 @@ export function useDemoAuth() {
   // Also subscribes to onAuthStateChange so refreshed tokens are forwarded to
   // the chat library automatically — without this, the session silently expires.
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session) {
         const mockUser = MOCK_USERS.find((u) => u.email === session.user.email);
         if (mockUser) {
@@ -24,7 +24,24 @@ export function useDemoAuth() {
             accessToken: session.access_token,
             refreshToken: session.refresh_token,
           });
+          setLoading(false);
+          return;
         }
+      }
+
+      // New visitor — auto-login with the first demo user.
+      const defaultUser = MOCK_USERS[0];
+      const { data } = await supabase.auth.signInWithPassword({
+        email: defaultUser.email!,
+        password: DEMO_PASSWORD,
+      });
+      if (data.session) {
+        setCurrentUser({
+          ...defaultUser,
+          id: data.session.user.id,
+          accessToken: data.session.access_token,
+          refreshToken: data.session.refresh_token,
+        });
       }
       setLoading(false);
     });
