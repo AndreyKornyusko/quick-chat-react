@@ -18,6 +18,33 @@
   margin-bottom: 1.5rem;
 }
 
+.hero__demo-links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.85rem;
+}
+
+.hero__demo-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.hero__demo-link:hover {
+  color: var(--color-brand);
+}
+
+.hero__demo-divider {
+  color: var(--color-text-muted);
+  opacity: 0.4;
+}
+
 .hero__headline {
   font-size: clamp(2.25rem, 5vw, 3.75rem);
   font-weight: 800;
