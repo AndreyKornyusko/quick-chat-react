@@ -30,6 +30,7 @@ export function ChatFloatingPanel({ supabaseUrl, supabaseAnonKey, currentUser, o
               userData={currentUser}
               height="100%"
               width="100%"
+              mobileLayout={true}
             />
           ) : (
             <QuickChat
@@ -38,6 +39,7 @@ export function ChatFloatingPanel({ supabaseUrl, supabaseAnonKey, currentUser, o
               authMode="built-in"
               height="100%"
               width="100%"
+              mobileLayout={true}
             />
           )
         )}
