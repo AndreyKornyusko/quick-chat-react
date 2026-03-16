@@ -1,12 +1,14 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { Mic, Square, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 
 interface VoiceRecorderProps {
   onSend: (blob: Blob, durationMs: number) => void;
 }
 
 export const VoiceRecorder = ({ onSend }: VoiceRecorderProps) => {
+  const { toast } = useToast();
   const [recording, setRecording] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -57,7 +59,15 @@ export const VoiceRecorder = ({ onSend }: VoiceRecorderProps) => {
       timerRef.current = setInterval(() => {
         setElapsed(Date.now() - startTimeRef.current);
       }, 100);
-    } catch {
+    } catch (err) {
+      const isDenied = err instanceof DOMException && (err.name === "NotAllowedError" || err.name === "PermissionDeniedError");
+      toast({
+        title: isDenied ? "Microphone access denied" : "Microphone unavailable",
+        description: isDenied
+          ? "Allow microphone access in your browser settings and try again."
+          : "Could not start recording. Check that a microphone is connected.",
+        variant: "destructive",
+      });
       cleanup();
     }
   }, [onSend, cleanup]);

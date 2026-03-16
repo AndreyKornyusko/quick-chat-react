@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -19,10 +19,16 @@ interface NewGroupDialogProps {
 export const NewGroupDialog = ({ open, onOpenChange, onCreated }: NewGroupDialogProps) => {
   const [name, setName] = useState("");
   const [memberSearch, setMemberSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [selectedProfiles, setSelectedProfiles] = useState<Map<string, { display_name: string; avatar_url: string | null }>>(new Map());
   const { data: contacts } = useContacts();
-  const { data: searchResults } = useSearchUsers(memberSearch);
+  const { data: searchResults } = useSearchUsers(debouncedSearch);
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(memberSearch), 300);
+    return () => clearTimeout(t);
+  }, [memberSearch]);
   const createGroup = useCreateGroupConversation();
   const { toast } = useToast();
 

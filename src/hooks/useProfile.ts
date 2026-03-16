@@ -30,7 +30,12 @@ export const useUpdateProfile = () => {
   return useMutation({
     mutationFn: async (updates: Partial<Profile>) => {
       if (!user) throw new Error("Not authenticated");
-      const { error } = await supabase.from("profiles").update(updates).eq("id", user.id);
+      // Whitelist mutable fields — prevents mass-assignment of id, created_at, etc.
+      const { display_name, bio, avatar_url } = updates;
+      const safeUpdates = Object.fromEntries(
+        Object.entries({ display_name, bio, avatar_url }).filter(([, v]) => v !== undefined)
+      );
+      const { error } = await supabase.from("profiles").update(safeUpdates).eq("id", user.id);
       if (error) throw error;
     },
     onSuccess: () => {

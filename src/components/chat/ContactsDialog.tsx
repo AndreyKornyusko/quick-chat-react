@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -18,8 +18,14 @@ interface ContactsDialogProps {
 
 export const ContactsDialog = ({ open, onOpenChange, onStartChat }: ContactsDialogProps) => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const { data: contacts, isLoading } = useContacts();
-  const { data: searchResults } = useSearchUsers(searchQuery);
+  const { data: searchResults } = useSearchUsers(debouncedSearch);
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(searchQuery), 300);
+    return () => clearTimeout(t);
+  }, [searchQuery]);
   const addContact = useAddContact();
   const removeContact = useRemoveContact();
   const createConversation = useCreatePrivateConversation();

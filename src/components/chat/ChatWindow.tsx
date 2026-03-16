@@ -299,6 +299,11 @@ export const ChatWindow = ({ conversationId, onBack }: ChatWindowProps) => {
         toast({ title: "File type not allowed", description: `${file.name} is not a supported file type`, variant: "destructive" });
         continue;
       }
+      // Cross-check browser-reported MIME type against the extension allowlist
+      if (file.type && file.type !== contentType) {
+        toast({ title: "File type mismatch", description: `${file.name}: file contents do not match its extension`, variant: "destructive" });
+        continue;
+      }
       const isImage = contentType.startsWith("image/");
       const isVideo = contentType.startsWith("video/");
       const fileType = isImage ? "image" : isVideo ? "video" : "file";
@@ -782,7 +787,7 @@ export const ChatWindow = ({ conversationId, onBack }: ChatWindowProps) => {
 
         {/* Send button when typing, Mic button when empty (mobile only swaps) */}
         {text.trim() ? (
-          <Button size="icon" className="h-9 w-9 rounded-full shrink-0" onClick={handleSend}>
+          <Button size="icon" className="h-9 w-9 rounded-full shrink-0" onClick={handleSend} disabled={sendMessage.isPending}>
             <Send className="h-4 w-4" />
           </Button>
         ) : (

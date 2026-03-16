@@ -134,6 +134,7 @@ function ProfileEditDialog({ open, onOpenChange, userId, email, supabase, onProf
     const file = e.target.files?.[0];
     if (!file || !userId) return;
 
+    const MAX_AVATAR_SIZE = 10 * 1024 * 1024; // 10 MB
     const ALLOWED: Record<string, string> = {
       "image/jpeg": "jpg",
       "image/png": "png",
@@ -142,6 +143,11 @@ function ProfileEditDialog({ open, onOpenChange, userId, email, supabase, onProf
     };
     if (!ALLOWED[file.type]) {
       setError("Only JPEG, PNG, GIF, and WebP are allowed.");
+      e.target.value = "";
+      return;
+    }
+    if (file.size > MAX_AVATAR_SIZE) {
+      setError("Avatar must be under 10 MB.");
       e.target.value = "";
       return;
     }
