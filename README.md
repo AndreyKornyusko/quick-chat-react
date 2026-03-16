@@ -203,6 +203,59 @@ Full usage and customization guide: [docs/ChatButton.md](https://github.com/Andr
 
 ---
 
+## Chat modal / floating panel
+
+For a compact floating panel or modal (e.g. opened by `ChatButton`), pass `mobileLayout={true}` to switch to a single-column layout with back navigation — no sidebar visible at once.
+
+```tsx
+import { useState } from "react";
+import { ChatButton, QuickChat } from "quick-chat-react";
+
+export function FloatingChat({ session }) {
+  const [open, setOpen] = useState(false);
+
+  const userData = {
+    id: session.user.id,
+    name: session.user.user_metadata.display_name ?? session.user.email,
+    accessToken: session.access_token,
+    refreshToken: session.refresh_token,
+  };
+
+  return (
+    <>
+      <ChatButton
+        supabaseUrl={url}
+        supabaseAnonKey={key}
+        userData={userData}
+        floating
+        position="bottom-right"
+        onClick={() => setOpen((v) => !v)}
+      />
+
+      {/* Compact panel anchored to bottom-right */}
+      <div style={{
+        position: "fixed", bottom: "5rem", right: "1.5rem",
+        width: 390, height: 680, borderRadius: "1rem",
+        overflow: "hidden", boxShadow: "0 24px 64px rgba(0,0,0,.2)",
+        display: open ? "block" : "none",
+      }}>
+        <QuickChat
+          supabaseUrl={url}
+          supabaseAnonKey={key}
+          authMode="external"
+          userData={userData}
+          height="100%"
+          width="100%"
+          mobileLayout={true}
+        />
+      </div>
+    </>
+  );
+}
+```
+
+---
+
 ## `UserAvatar` component
 
 A user avatar button for your navbar or header. When using `authMode="built-in"`, it detects the current session automatically — no extra wiring needed. On click it shows a dropdown with profile info, theme switcher (Light / Dark / System), and Sign out.
@@ -270,6 +323,7 @@ For a user to appear in search results they must have a `profiles` row in your S
 | `showReadReceipts` | `boolean` | `true` | Show read receipt checkmarks. |
 | `height` | `string` | `"600px"` | Container height (any CSS value). |
 | `width` | `string` | `"100%"` | Container width (any CSS value). |
+| `mobileLayout` | `boolean` | `false` | Single-column layout with back navigation — ideal for chat modals, floating panels, or narrow containers. |
 | `onUnreadCountChange` | `(count: number) => void` | — | Fires when unread count changes. |
 | `onConversationSelect` | `(id: string) => void` | — | Fires when a conversation is selected. |
 

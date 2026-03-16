@@ -341,6 +341,7 @@ const { data: { session } } = await supabase.auth.getSession();
               <tr><td><code>showReadReceipts</code></td><td><code>boolean</code></td><td><code>true</code></td><td>Show read receipt checkmarks.</td></tr>
               <tr><td><code>height</code></td><td><code>string</code></td><td><code>"600px"</code></td><td>Container height (any CSS value).</td></tr>
               <tr><td><code>width</code></td><td><code>string</code></td><td><code>"100%"</code></td><td>Container width (any CSS value).</td></tr>
+              <tr><td><code>mobileLayout</code></td><td><code>boolean</code></td><td><code>false</code></td><td>Single-column layout with back navigation — ideal for chat modals, floating panels, or narrow containers.</td></tr>
               <tr><td><code>onUnreadCountChange</code></td><td><code>(count: number) =&gt; void</code></td><td>—</td><td>Fires when unread count changes.</td></tr>
               <tr><td><code>onConversationSelect</code></td><td><code>(id: string) =&gt; void</code></td><td>—</td><td>Fires when a conversation is selected.</td></tr>
             </tbody>
@@ -431,6 +432,49 @@ const [unread, setUnread] = useState(0);
   supabaseAnonKey={key}
   onUnreadCountChange={setUnread}
 />`}</Code>
+
+          <H3 id="ref-mobile-layout">Chat modal &amp; floating panel</H3>
+          <p>
+            Use <code>mobileLayout=&#123;true&#125;</code> on <code>&lt;QuickChat&gt;</code> when embedding it in a
+            compact floating panel or modal. It switches to a single-column layout with back navigation —
+            the sidebar and conversation view never show side by side.
+          </p>
+          <Code>{`import { useState } from "react";
+import { ChatButton, QuickChat } from "quick-chat-react";
+
+export function FloatingChat({ userData }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <ChatButton
+        supabaseUrl={url}
+        supabaseAnonKey={key}
+        userData={userData}
+        floating
+        position="bottom-right"
+        onClick={() => setOpen((v) => !v)}
+      />
+
+      {/* Compact panel anchored bottom-right */}
+      <div style={{
+        position: "fixed", bottom: "5rem", right: "1.5rem",
+        width: 390, height: 680, borderRadius: "1rem",
+        overflow: "hidden", display: open ? "block" : "none",
+      }}>
+        <QuickChat
+          supabaseUrl={url}
+          supabaseAnonKey={key}
+          authMode="external"
+          userData={userData}
+          height="100%"
+          width="100%"
+          mobileLayout={true}
+        />
+      </div>
+    </>
+  );
+}`}</Code>
 
           <H3 id="ref-useravatar">&lt;UserAvatar&gt;</H3>
           <p>
