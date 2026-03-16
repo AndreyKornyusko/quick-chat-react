@@ -2,6 +2,7 @@
   "name": "quick-chat-react",
   "version": "1.0.4",
   "description": "Drop-in React chat component backed by Supabase. Real-time messaging, group chats, voice messages, file uploads, emoji reactions, read receipts, and unread badge — all via props.",
+  "workspaces": ["nextjs-demo"],
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",

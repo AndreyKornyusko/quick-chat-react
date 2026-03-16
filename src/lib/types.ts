@@ -61,6 +61,8 @@ export interface QuickChatProps {
   height?: string;
   /** Container width CSS value */
   width?: string;
+  /** Force mobile layout (single-panel with sidebar ↔ chat navigation) regardless of viewport width */
+  mobileLayout?: boolean;
   /** Callback fired when unread message count changes */
   onUnreadCountChange?: (count: number) => void;
   /** Callback fired when a conversation is selected */

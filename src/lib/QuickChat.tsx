@@ -14,9 +14,10 @@ const QuickChatInner = ({
   userData,
   height,
   width,
+  mobileLayout,
   onUnreadCountChange,
   onConversationSelect,
-}: Pick<QuickChatProps, "authMode" | "userData" | "height" | "width" | "onUnreadCountChange" | "onConversationSelect">) => {
+}: Pick<QuickChatProps, "authMode" | "userData" | "height" | "width" | "mobileLayout" | "onUnreadCountChange" | "onConversationSelect">) => {
   const { user, loading } = useAuth();
 
   if (loading) {
@@ -32,6 +33,7 @@ const QuickChatInner = ({
   return (
     <div style={{ height, width }}>
       <ChatApp
+        mobileLayout={mobileLayout}
         onUnreadCountChange={onUnreadCountChange}
         onConversationSelect={onConversationSelect}
       />
@@ -53,6 +55,7 @@ export const QuickChat = ({
   showReadReceipts = true,
   height = "100vh",
   width = "100%",
+  mobileLayout,
   onUnreadCountChange,
   onConversationSelect,
 }: QuickChatProps) => {
@@ -73,6 +76,7 @@ export const QuickChat = ({
               userData={userData}
               height={height}
               width={width}
+              mobileLayout={mobileLayout}
               onUnreadCountChange={onUnreadCountChange}
               onConversationSelect={onConversationSelect}
             />

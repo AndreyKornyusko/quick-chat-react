@@ -10,7 +10,7 @@ Drop-in real-time chat for React apps built on **[Supabase](https://supabase.com
 
 ## Preview
 
-![Quick Chat Preview](./docs/quick-chat-react-preview.png)
+![Quick Chat Preview](./docs/quick-chat-react-demo.png)
 
 ## Installation
 

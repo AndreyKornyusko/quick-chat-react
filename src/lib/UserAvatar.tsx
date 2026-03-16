@@ -1,7 +1,11 @@
-import { useState, useEffect, useMemo, type CSSProperties } from "react";
+import { useState, useEffect, useRef, useMemo, type CSSProperties } from "react";
 import { createClient, type Session } from "@supabase/supabase-js";
-import { Sun, Moon, Monitor, User, LogOut, LogIn } from "lucide-react";
+import { Sun, Moon, Monitor, User, LogOut, LogIn, Camera, Pencil, X, Check, Loader2 } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -17,7 +21,6 @@ import {
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
@@ -48,39 +51,214 @@ function truncateName(name: string, maxLength: number): string {
   return name.slice(0, maxLength) + "…";
 }
 
-// --- Internal profile dialog (read-only, no context deps) ---
+// --- Editable profile dialog ---
 
-interface ProfileDialogProps {
+type ProfileData = { display_name: string; avatar_url: string | null; bio: string | null };
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnySupabaseClient = ReturnType<typeof createClient<any>>;
+
+interface ProfileEditDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  profile: { display_name: string; avatar_url: string | null; bio: string | null } | null;
+  userId: string;
   email: string;
+  supabase: AnySupabaseClient;
+  onProfileSaved?: (profile: ProfileData) => void;
 }
 
-function ProfileReadOnlyDialog({ open, onOpenChange, profile, email }: ProfileDialogProps) {
-  const displayName = profile?.display_name ?? "";
-  const initials = getInitials(displayName || email);
+function ProfileEditDialog({ open, onOpenChange, userId, email, supabase, onProfileSaved }: ProfileEditDialogProps) {
+  const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [displayName, setDisplayName] = useState("");
+  const [bio, setBio] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!open || !userId) return;
+    setLoading(true);
+    setError(null);
+    supabase
+      .from("profiles")
+      .select("display_name, avatar_url, bio")
+      .eq("id", userId)
+      .single()
+      .then(({ data, error }) => {
+        if (error) setError(error.message);
+        else setProfile(data ?? null);
+        setLoading(false);
+      });
+  }, [open, userId, supabase]);
+
+  // Reset edit state when dialog closes
+  useEffect(() => {
+    if (!open) setEditing(false);
+  }, [open]);
+
+  const initials = getInitials(profile?.display_name || email);
+
+  const startEdit = () => {
+    if (!profile) return;
+    setDisplayName(profile.display_name);
+    setBio(profile.bio ?? "");
+    setEditing(true);
+  };
+
+  const cancelEdit = () => setEditing(false);
+
+  const handleSave = async () => {
+    if (!userId) return;
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ display_name: displayName.trim() || profile?.display_name, bio })
+        .eq("id", userId);
+      if (error) throw error;
+      const updated: ProfileData = { ...profile!, display_name: displayName.trim() || profile!.display_name, bio };
+      setProfile(updated);
+      onProfileSaved?.(updated);
+      setEditing(false);
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !userId) return;
+
+    const ALLOWED: Record<string, string> = {
+      "image/jpeg": "jpg",
+      "image/png": "png",
+      "image/gif": "gif",
+      "image/webp": "webp",
+    };
+    if (!ALLOWED[file.type]) {
+      setError("Only JPEG, PNG, GIF, and WebP are allowed.");
+      e.target.value = "";
+      return;
+    }
+
+    const ext = ALLOWED[file.type];
+    const path = `${userId}/avatar.${ext}`;
+    setUploading(true);
+    try {
+      await supabase.storage.from("avatars").remove([path]);
+      const { error: uploadError } = await supabase.storage.from("avatars").upload(path, file, { upsert: true });
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(path);
+      const avatarUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ avatar_url: avatarUrl })
+        .eq("id", userId);
+      if (updateError) throw updateError;
+
+      const updated: ProfileData = { ...profile!, avatar_url: avatarUrl };
+      setProfile(updated);
+      onProfileSaved?.(updated);
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-sm">
-        <DialogHeader>
-          <DialogTitle>Profile</DialogTitle>
-          <DialogDescription className="sr-only">User profile details</DialogDescription>
-        </DialogHeader>
-        <div className="flex flex-col items-center gap-4 py-4">
-          <Avatar className="h-24 w-24">
-            <AvatarImage src={profile?.avatar_url ?? undefined} />
-            <AvatarFallback className="text-2xl font-semibold">{initials}</AvatarFallback>
-          </Avatar>
-          {displayName && (
-            <p className="text-lg font-semibold text-center">{displayName}</p>
-          )}
-          {email && (
-            <p className="text-sm text-muted-foreground text-center">{email}</p>
-          )}
-          {profile?.bio && (
-            <p className="text-sm text-center text-foreground/80 max-w-xs">{profile.bio}</p>
+      <DialogContent className="sm:max-w-[360px] p-0 overflow-hidden">
+        <DialogTitle className="sr-only">Profile</DialogTitle>
+        <DialogDescription className="sr-only">View and edit your profile</DialogDescription>
+
+        {/* Header with avatar */}
+        <div className="relative flex flex-col items-center pt-8 pb-4 bg-primary/10">
+          <div className="relative group">
+            <Avatar className="h-24 w-24 border-4 border-background shadow-lg">
+              <AvatarImage src={profile?.avatar_url ?? undefined} />
+              <AvatarFallback className="text-2xl font-bold">{initials}</AvatarFallback>
+            </Avatar>
+            <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+            >
+              {uploading ? (
+                <Loader2 className="h-6 w-6 text-white animate-spin" />
+              ) : (
+                <Camera className="h-6 w-6 text-white" />
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="px-6 pb-6 pt-4 space-y-4">
+          {loading ? (
+            <div className="flex justify-center py-4">
+              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+            </div>
+          ) : editing ? (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="ua-displayName">Display name</Label>
+                <Input
+                  id="ua-displayName"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  placeholder="Your name"
+                  maxLength={100}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="ua-bio">Bio</Label>
+                <Textarea
+                  id="ua-bio"
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
+                  placeholder="Tell about yourself…"
+                  rows={3}
+                  maxLength={500}
+                />
+              </div>
+              {error && <p className="text-xs text-destructive">{error}</p>}
+              <div className="flex gap-2 justify-end">
+                <Button variant="ghost" size="sm" onClick={cancelEdit} disabled={saving}>
+                  <X className="h-4 w-4 mr-1" /> Cancel
+                </Button>
+                <Button size="sm" onClick={handleSave} disabled={saving}>
+                  {saving ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Check className="h-4 w-4 mr-1" />}
+                  Save
+                </Button>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="text-center">
+                <h3 className="text-lg font-semibold">{profile?.display_name}</h3>
+                {email && <p className="text-sm text-muted-foreground">{email}</p>}
+              </div>
+              {profile?.bio && (
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Bio</p>
+                  <p className="text-sm">{profile.bio}</p>
+                </div>
+              )}
+              {error && <p className="text-xs text-destructive">{error}</p>}
+              <Button variant="outline" size="sm" className="w-full" onClick={startEdit}>
+                <Pencil className="h-4 w-4 mr-2" /> Edit profile
+              </Button>
+            </>
           )}
         </div>
       </DialogContent>
@@ -109,11 +287,7 @@ export const UserAvatar = ({
 }: UserAvatarProps) => {
   const [session, setSession] = useState<Session | null>(null);
   const [authLoading, setAuthLoading] = useState(authMode === "built-in");
-  const [profile, setProfile] = useState<{
-    display_name: string;
-    avatar_url: string | null;
-    bio: string | null;
-  } | null>(null);
+  const [profile, setProfile] = useState<ProfileData | null>(null);
   const [theme, setThemeState] = useState<"light" | "dark" | "system">(() => {
     if (typeof window === "undefined") return "system";
     return (localStorage.getItem("chat-theme") as "light" | "dark" | "system") || "system";
@@ -204,6 +378,7 @@ export const UserAvatar = ({
   const avatarUrl = profile?.avatar_url ?? userData?.avatar ?? null;
   const displayName = profile?.display_name ?? userData?.name ?? "";
   const email = session?.user?.email ?? userData?.email ?? "";
+  const userId = authMode === "external" ? userData?.id : session?.user?.id;
   const isLoggedIn = authMode === "built-in" ? session !== null : !!userData?.id;
   const initials = getInitials(displayName || email);
 
@@ -331,12 +506,16 @@ export const UserAvatar = ({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <ProfileReadOnlyDialog
-        open={profileDialogOpen}
-        onOpenChange={setProfileDialogOpen}
-        profile={profile}
-        email={email}
-      />
+      {supabase && userId && (
+        <ProfileEditDialog
+          open={profileDialogOpen}
+          onOpenChange={setProfileDialogOpen}
+          userId={userId}
+          email={email}
+          supabase={supabase}
+          onProfileSaved={(updated) => setProfile(updated)}
+        />
+      )}
     </>
   );
 };

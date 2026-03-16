@@ -4,13 +4,14 @@ import { ChatWindow } from "@/components/chat/ChatWindow";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ChatAppProps {
+  mobileLayout?: boolean;
   onUnreadCountChange?: (count: number) => void;
   onConversationSelect?: (id: string) => void;
 }
 
-const ChatApp = ({ onUnreadCountChange, onConversationSelect }: ChatAppProps = {}) => {
+const ChatApp = ({ mobileLayout, onUnreadCountChange, onConversationSelect }: ChatAppProps = {}) => {
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
-  const isMobile = useIsMobile();
+  const isMobile = useIsMobile() || !!mobileLayout;
   const [showSidebar, setShowSidebar] = useState(true);
 
   const handleSelectConversation = (id: string) => {
