@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { ChatButton } from "quick-chat-react";
+import { ChatButton, UserAvatar } from "quick-chat-react";
 import type { UserData } from "quick-chat-react";
 import { UserSwitcher } from "../UserSwitcher/UserSwitcher";
 import "./Header.css";
@@ -93,7 +93,15 @@ export function Header({ supabaseUrl, supabaseAnonKey, currentUser, onOpenChat, 
             onLogin={onLogin}
             onLogout={onLogout}
           />
-          {currentUser && (
+          {activeTab === "chat" && (
+            <UserAvatar
+              supabaseUrl={supabaseUrl}
+              supabaseAnonKey={supabaseAnonKey}
+              authMode="built-in"
+              size="sm"
+            />
+          )}
+          {currentUser && activeTab !== "chat" && (
             <ChatButton
               supabaseUrl={supabaseUrl}
               supabaseAnonKey={supabaseAnonKey}
