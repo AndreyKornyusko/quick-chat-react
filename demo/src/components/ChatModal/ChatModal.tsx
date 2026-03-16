@@ -32,6 +32,20 @@ export function ChatModal({ supabaseUrl, supabaseAnonKey, currentUser, onClose }
     <div className="modal-overlay" onClick={onClose}>
       <div className="chat-modal" onClick={(e) => e.stopPropagation()}>
         <div className="chat-modal__bar">
+          <span
+            className={`chat-modal__auth-badge ${
+              currentUser
+                ? "chat-modal__auth-badge--external"
+                : "chat-modal__auth-badge--builtin"
+            }`}
+            title={
+              currentUser
+                ? "External auth: your app's session is passed to QuickChat via userData prop"
+                : "Built-in auth: QuickChat renders its own login/signup UI"
+            }
+          >
+            {currentUser ? "⚡ External Auth" : "🔑 Built-in Auth"}
+          </span>
           <button className="chat-modal__close" onClick={onClose} aria-label="Close chat">
             ✕
           </button>

@@ -5,3 +5,23 @@
   position: relative;
   overflow: hidden;
 }
+
+.inner-chat-page__auth-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 1rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  background: rgba(99, 102, 241, 0.08);
+  color: #4f46e5;
+  border-bottom: 1px solid rgba(99, 102, 241, 0.18);
+  flex-shrink: 0;
+}
+
+.dark .inner-chat-page__auth-banner {
+  background: rgba(99, 102, 241, 0.12);
+  color: #a5b4fc;
+  border-bottom-color: rgba(99, 102, 241, 0.25);
+}

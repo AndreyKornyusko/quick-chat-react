@@ -10,12 +10,20 @@ export function DashboardClient() {
   return (
     <div className="h-[calc(100dvh-64px)]">
       {/* Desktop: QuickChat inline, full height */}
-      <div className="hidden md:block h-full">
-        <ChatPanel
-          height="100%"
-          onUnreadCountChange={setUnreadCount}
-          onConversationSelect={(id) => setSelectedConversationId(id)}
-        />
+      <div className="hidden md:flex flex-col h-full">
+        <div
+          className="flex items-center gap-2 px-4 py-1.5 text-[0.68rem] font-semibold tracking-wide uppercase bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border-b border-green-200 dark:border-green-800 shrink-0"
+          title="External auth: your Supabase session is passed to QuickChat via the userData prop"
+        >
+          ⚡ External Auth — session passed via <code className="font-mono normal-case tracking-normal">userData</code> prop
+        </div>
+        <div className="flex-1 min-h-0">
+          <ChatPanel
+            height="100%"
+            onUnreadCountChange={setUnreadCount}
+            onConversationSelect={(id) => setSelectedConversationId(id)}
+          />
+        </div>
       </div>
 
       {/* Mobile: placeholder — actual chat opens via ChatModal in layout */}
