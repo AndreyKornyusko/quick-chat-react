@@ -1,0 +1,4 @@
+{
+  "installCommand": "cd .. && npm install && npm run build:lib && cd nextjs-demo && npm install",
+  "buildCommand": "npm run build"
+}
