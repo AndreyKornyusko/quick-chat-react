@@ -16,13 +16,15 @@ export function InnerChatPage({ supabaseUrl, supabaseAnonKey }: InnerChatPagePro
       >
         🔑 Built-in Auth — QuickChat manages login &amp; signup itself
       </div>
-      <QuickChat
-        supabaseUrl={supabaseUrl}
-        supabaseAnonKey={supabaseAnonKey}
-        authMode="built-in"
-        height="100%"
-        width="100%"
-      />
+      <div className="inner-chat-page__chat-wrapper">
+        <QuickChat
+          supabaseUrl={supabaseUrl}
+          supabaseAnonKey={supabaseAnonKey}
+          authMode="built-in"
+          height="100%"
+          width="100%"
+        />
+      </div>
     </div>
   );
 }

@@ -25,3 +25,9 @@
   color: #a5b4fc;
   border-bottom-color: rgba(99, 102, 241, 0.25);
 }
+
+.inner-chat-page__chat-wrapper {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
