@@ -14,7 +14,7 @@ export function InnerChatPage({ supabaseUrl, supabaseAnonKey }: InnerChatPagePro
         className="inner-chat-page__auth-banner"
         title="Built-in auth: QuickChat renders its own login/signup UI — no external session needed"
       >
-        🔑 Built-in Auth — QuickChat manages login &amp; signup itself
+        🔑 Built-in Auth Demo — QuickChat manages login &amp; signup itself
       </div>
       <div className="inner-chat-page__chat-wrapper">
         <QuickChat
