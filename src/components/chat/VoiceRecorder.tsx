@@ -5,9 +5,10 @@ import { useToast } from "@/hooks/use-toast";
 
 interface VoiceRecorderProps {
   onSend: (blob: Blob, durationMs: number) => void;
+  onRecordingChange?: (recording: boolean) => void;
 }
 
-export const VoiceRecorder = ({ onSend }: VoiceRecorderProps) => {
+export const VoiceRecorder = ({ onSend, onRecordingChange }: VoiceRecorderProps) => {
   const { toast } = useToast();
   const [recording, setRecording] = useState(false);
   const [elapsed, setElapsed] = useState(0);
@@ -25,6 +26,7 @@ export const VoiceRecorder = ({ onSend }: VoiceRecorderProps) => {
     chunksRef.current = [];
     setElapsed(0);
     setRecording(false);
+    onRecordingChange?.(false);
   }, []);
 
   const startRecording = useCallback(async () => {
@@ -56,6 +58,7 @@ export const VoiceRecorder = ({ onSend }: VoiceRecorderProps) => {
       recorder.start(100);
       startTimeRef.current = Date.now();
       setRecording(true);
+      onRecordingChange?.(true);
       timerRef.current = setInterval(() => {
         setElapsed(Date.now() - startTimeRef.current);
       }, 100);

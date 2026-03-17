@@ -9,7 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, ArrowDown, Send, Paperclip, X, Check, CheckCheck, Pencil, Reply, Search, Play, Loader2, AlertCircle, RotateCcw, Trash2, Smile, Mic, MoreVertical, Info, BellOff, LogOut } from "lucide-react";
+import { ArrowLeft, ArrowDown, Send, Paperclip, X, Check, CheckCheck, Pencil, Reply, Search, Play, Loader2, AlertCircle, RotateCcw, Trash2, Smile, MoreVertical, Info, BellOff, LogOut } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -51,6 +51,7 @@ export const ChatWindow = ({ conversationId, onBack }: ChatWindowProps) => {
   const qc = useQueryClient();
 
   const [text, setText] = useState("");
+  const [isVoiceRecording, setIsVoiceRecording] = useState(false);
   const [replyTo, setReplyTo] = useState<Message | null>(null);
   const [editingMsg, setEditingMsg] = useState<Message | null>(null);
   const [forwardMsg, setForwardMsg] = useState<Message | null>(null);
@@ -174,14 +175,23 @@ export const ChatWindow = ({ conversationId, onBack }: ChatWindowProps) => {
       (entries) => {
         for (const entry of entries) {
           if (entry.isIntersecting) {
-            const msgId = (entry.target as HTMLElement).dataset.msgId;
-            if (msgId && unreadIdsRef.current.has(msgId)) {
-              readBatchRef.current.add(msgId);
+            const el = entry.target as HTMLElement;
+            const groupIds = el.dataset.groupIds?.split(",").filter(Boolean) ?? [];
+            const singleId = el.dataset.msgId;
+            const ids = groupIds.length > 0 ? groupIds : (singleId ? [singleId] : []);
+            let added = false;
+            for (const id of ids) {
+              if (unreadIdsRef.current.has(id)) {
+                readBatchRef.current.add(id);
+                added = true;
+              }
+            }
+            if (added) {
               if (readTimerRef.current) clearTimeout(readTimerRef.current);
               readTimerRef.current = setTimeout(() => {
-                const ids = Array.from(readBatchRef.current);
-                if (ids.length > 0 && conversationIdRef.current) {
-                  markAsReadRef.current.mutate({ messageIds: ids, conversationId: conversationIdRef.current });
+                const batch = Array.from(readBatchRef.current);
+                if (batch.length > 0 && conversationIdRef.current) {
+                  markAsReadRef.current.mutate({ messageIds: batch, conversationId: conversationIdRef.current });
                   readBatchRef.current.clear();
                 }
               }, 500);
@@ -332,6 +342,7 @@ export const ChatWindow = ({ conversationId, onBack }: ChatWindowProps) => {
         file_url: fileUrl,
         file_name: file.name,
         file_size: file.size,
+        _tempId: `temp-${crypto.randomUUID()}`,
       });
     }
     e.target.value = "";
@@ -365,6 +376,7 @@ export const ChatWindow = ({ conversationId, onBack }: ChatWindowProps) => {
       file_url: voiceUrl,
       file_name: `voice.${ext}`,
       file_size: blob.size,
+      _tempId: `temp-${crypto.randomUUID()}`,
     });
     setTimeout(() => scrollToBottom(), 50);
   };
@@ -627,8 +639,10 @@ export const ChatWindow = ({ conversationId, onBack }: ChatWindowProps) => {
                 const time = format(new Date(lastMsg.created_at), "HH:mm");
 
                 const hasUnread = group.msgs.some(m => user && m.sender_id !== user.id && unreadIds.has(m.id));
+                const groupHasReads = isOwn && group.msgs.some(m => (m.read_by ?? []).length > 0);
+                const groupReactions = reactionsMap[firstMsg.id] ?? [];
                 return (
-                  <div key={firstMsg.id} data-msg-id={firstMsg.id} data-unread={hasUnread ? "true" : "false"}>
+                  <div key={firstMsg.id} data-msg-id={firstMsg.id} data-group-ids={group.msgs.map(m => m.id).join(",")} data-unread={hasUnread ? "true" : "false"}>
                     {showDate && <DateSeparator date={new Date(firstMsg.created_at)} />}
                     {showUnreadSep && (
                       <div ref={unreadSeparatorRef} className="my-3 flex justify-center">
@@ -667,10 +681,17 @@ export const ChatWindow = ({ conversationId, onBack }: ChatWindowProps) => {
                             <div className={`mt-0.5 px-2 flex items-center justify-end gap-1 text-[10px] ${isOwn ? "text-chat-bubble-out-foreground/50" : "text-chat-bubble-in-foreground/50"}`}>
                               <span>{photos.length} photos</span>
                               <span>{time}</span>
-                              {isOwn && <Check className="h-3 w-3" />}
+                              {isOwn && (groupHasReads ? <CheckCheck className="h-3 w-3 text-read" /> : <Check className="h-3 w-3" />)}
                             </div>
                           </div>
                         </MessageContextMenu>
+                        {config.allowReactions && (
+                          <MessageReactions
+                            reactions={groupReactions}
+                            onToggle={(emoji) => handleReact(firstMsg.id, emoji)}
+                            isOwn={isOwn}
+                          />
+                        )}
                       </div>
                     </div>
                   </div>
@@ -752,21 +773,23 @@ export const ChatWindow = ({ conversationId, onBack }: ChatWindowProps) => {
       {/* Input - floating on mobile */}
       <div className="flex items-center gap-2 px-3 py-2 md:border-t md:border-border md:bg-background md:px-4 md:py-3 md:relative fixed bottom-0 left-0 right-0 z-40 md:bottom-auto md:left-auto md:right-auto md:z-auto">
         <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileUpload} multiple accept="image/*,video/*,application/*" />
-        {config.allowFileUpload && (
+        {!isVoiceRecording && config.allowFileUpload && (
           <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full md:rounded-md shrink-0" onClick={() => fileInputRef.current?.click()}>
             <Paperclip className="h-5 w-5" />
           </Button>
         )}
-        <Input
-          placeholder="Message..."
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
-          className="flex-1 md:rounded-md rounded-full bg-card/90 md:bg-background backdrop-blur-sm md:backdrop-blur-none border-border/50"
-        />
+        {!isVoiceRecording && (
+          <Input
+            placeholder="Message..."
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
+            className="flex-1 md:rounded-md rounded-full bg-card/90 md:bg-background backdrop-blur-sm md:backdrop-blur-none border-border/50"
+          />
+        )}
 
         {/* Emoji button: always on desktop, only when typing on mobile */}
-        {config.allowReactions && <div className={`relative ${!text.trim() ? "hidden md:block" : ""}`} ref={emojiPickerRef}>
+        {!isVoiceRecording && config.allowReactions && <div className={`relative ${!text.trim() ? "hidden md:block" : ""}`} ref={emojiPickerRef}>
           <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full md:rounded-md shrink-0" onClick={() => setShowEmojiPicker((v) => !v)}>
             <Smile className="h-5 w-5" />
           </Button>
@@ -785,30 +808,17 @@ export const ChatWindow = ({ conversationId, onBack }: ChatWindowProps) => {
           )}
         </div>}
 
-        {/* Send button when typing, Mic button when empty (mobile only swaps) */}
+        {/* Send button when typing, Voice recorder when empty */}
         {text.trim() ? (
           <Button size="icon" className="h-9 w-9 rounded-full shrink-0" onClick={handleSend} disabled={sendMessage.isPending}>
             <Send className="h-4 w-4" />
           </Button>
+        ) : config.allowVoiceMessages ? (
+          <VoiceRecorder onSend={handleVoiceSend} onRecordingChange={setIsVoiceRecording} />
         ) : (
-          <>
-            {/* Desktop: always show send (disabled) */}
-            <div className="hidden md:block">
-              <Button size="icon" className="h-9 w-9 rounded-full shrink-0" onClick={handleSend} disabled>
-                <Send className="h-4 w-4" />
-              </Button>
-            </div>
-            {/* Mobile: show voice recorder */}
-            <div className="md:hidden">
-              {config.allowVoiceMessages ? (
-                <VoiceRecorder onSend={handleVoiceSend} />
-              ) : (
-                <Button size="icon" className="h-9 w-9 rounded-full shrink-0" onClick={handleSend} disabled>
-                  <Send className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
-          </>
+          <Button size="icon" className="h-9 w-9 rounded-full shrink-0" onClick={handleSend} disabled>
+            <Send className="h-4 w-4" />
+          </Button>
         )}
       </div>
 
