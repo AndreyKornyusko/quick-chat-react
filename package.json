@@ -1,6 +1,6 @@
 {
   "name": "quick-chat-react",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "The fastest way to add real-time chat to your React MVP. Drop-in component backed by Supabase — messaging, group chats, voice messages, file uploads, emoji reactions, read receipts, all via props.",
   "workspaces": [
     "nextjs-demo"
