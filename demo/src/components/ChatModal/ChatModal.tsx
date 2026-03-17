@@ -44,7 +44,7 @@ export function ChatModal({ supabaseUrl, supabaseAnonKey, currentUser, onClose }
                 : "Built-in auth: QuickChat renders its own login/signup UI"
             }
           >
-            {currentUser ? "⚡ External Auth" : "🔑 Built-in Auth"}
+            {currentUser ? "⚡ External Auth Demo" : "🔑 Built-in Auth Demo"}
           </span>
           <button className="chat-modal__close" onClick={onClose} aria-label="Close chat">
             ✕

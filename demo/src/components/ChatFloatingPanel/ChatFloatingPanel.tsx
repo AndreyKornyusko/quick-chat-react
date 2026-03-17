@@ -27,7 +27,7 @@ export function ChatFloatingPanel({ supabaseUrl, supabaseAnonKey, currentUser, o
                 : "Built-in auth: QuickChat renders its own login/signup UI"
             }
           >
-            {currentUser ? "⚡ External Auth" : "🔑 Built-in Auth"}
+            {currentUser ? "⚡ External Auth Demo" : "🔑 Built-in Auth Demo"}
           </span>
         </div>
         <button className="chat-floating-panel__close" onClick={onClose} aria-label="Close chat">

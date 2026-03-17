@@ -28,7 +28,7 @@ export function ChatModal({ open, onClose, onUnreadCountChange }: ChatModalProps
             className="inline-flex items-center gap-1 text-[0.65rem] font-semibold tracking-wide uppercase px-2 py-0.5 rounded-full bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800"
             title="External auth: your Supabase session is passed to QuickChat via the userData prop"
           >
-            ⚡ External Auth
+            ⚡ External Auth Demo
           </span>
         </div>
         <button
