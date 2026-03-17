@@ -10,6 +10,7 @@ import { Footer } from "./components/Footer/Footer";
 import { ChatButton } from "quick-chat-react";
 import { ChatModal } from "./components/ChatModal/ChatModal";
 import { ChatFloatingPanel } from "./components/ChatFloatingPanel/ChatFloatingPanel";
+import { ChatButtonShowcase } from "./components/ChatButtonShowcase/ChatButtonShowcase";
 import { InnerChatPage } from "./components/InnerChatPage/InnerChatPage";
 import { DocsPage } from "./components/DocsPage/DocsPage";
 
@@ -61,6 +62,12 @@ export default function App() {
         <main>
           <Hero onOpenChat={() => setIsChatOpen(true)} isLoggedIn={currentUser !== null} />
           <Features />
+          <ChatButtonShowcase
+            supabaseUrl={SUPABASE_URL}
+            supabaseAnonKey={SUPABASE_ANON_KEY}
+            currentUser={currentUser}
+            onOpenChat={() => setIsFloatingPanelOpen(true)}
+          />
           <Team
             users={MOCK_USERS}
             currentUser={currentUser}
