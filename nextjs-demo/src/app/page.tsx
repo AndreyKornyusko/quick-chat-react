@@ -31,14 +31,17 @@ export default function HomePage() {
     <div className="flex flex-col min-h-dvh">
       {/* Header */}
       <header className="px-4 md:px-6 h-16 flex items-center justify-between border-b border-slate-200 dark:border-slate-700">
-        <div className="flex items-center gap-2 font-bold text-slate-900 dark:text-white">
-          <span className="text-xl">💬</span>
-          <span>QuickChat Next.js Demo</span>
+        <div className="flex items-center gap-2 font-bold text-slate-900 dark:text-white min-w-0">
+          <span className="text-xl shrink-0">💬</span>
+          <span className="truncate">
+            <span>QuickChat</span>
+            <span className="hidden sm:inline"> Next.js Demo</span>
+          </span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <Link
             href="/dashboard"
-            className="text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white px-3 py-2 transition-colors"
+            className="hidden sm:block text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white px-3 py-2 transition-colors"
           >
             Chat
           </Link>
@@ -62,10 +65,11 @@ export default function HomePage() {
             </a>
           </div>
 
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight">
-            Drop-in real-time chat (Next.js Demo)
-            <br className="hidden md:block" />
-            <span className="text-indigo-600"> for React + Supabase</span>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight">
+            Drop-in real-time chat
+            <br className="hidden sm:block" />
+            <span className="hidden sm:inline">(Next.js Demo) </span>
+            <span className="text-indigo-600">for React + Supabase</span>
           </h1>
 
           <p className="mt-6 text-lg md:text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto leading-relaxed">
@@ -109,7 +113,7 @@ export default function HomePage() {
               <span className="w-3 h-3 rounded-full bg-green-500" />
               <span className="ml-2 text-xs text-slate-400">external-auth.tsx</span>
             </div>
-            <pre className="overflow-x-auto text-sm p-4 leading-relaxed">
+            <pre className="overflow-x-auto text-xs sm:text-sm p-4 leading-relaxed">
               <code>{`import { QuickChat } from "quick-chat-react";
 
 const { data: { session } } = await supabase.auth.getSession();
@@ -151,7 +155,7 @@ const { data: { session } } = await supabase.auth.getSession();
         </section>
 
         {/* CTA */}
-        <section className="px-4 md:px-6 pb-20 text-center">
+        <section className="px-4 md:px-6 pb-24 sm:pb-20 text-center">
           <div className="max-w-xl mx-auto bg-indigo-600 rounded-2xl p-8 md:p-10">
             <h2 className="text-2xl md:text-3xl font-bold text-white">
               Ready to test external auth?

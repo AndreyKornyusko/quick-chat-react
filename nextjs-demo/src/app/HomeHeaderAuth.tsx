@@ -49,7 +49,7 @@ export function HomeHeaderAuth() {
           onClick={handleLogout}
           aria-label="Sign out"
           title="Sign out"
-          className="p-2 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+          className="hidden sm:flex p-2 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors min-h-[44px] min-w-[44px] items-center justify-center"
         >
           <LogOut className="h-4 w-4" />
         </button>
@@ -61,7 +61,7 @@ export function HomeHeaderAuth() {
     <>
       <Link
         href="/login"
-        className="text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white px-3 py-2 transition-colors"
+        className="hidden sm:block text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white px-3 py-2 transition-colors"
       >
         Sign in
       </Link>
@@ -69,7 +69,8 @@ export function HomeHeaderAuth() {
         href="/register"
         className="text-sm bg-indigo-600 text-white hover:bg-indigo-700 px-4 py-2 rounded-lg font-medium transition-colors min-h-[44px] flex items-center"
       >
-        Get started
+        <span className="hidden sm:inline">Get started</span>
+        <span className="sm:hidden">Sign up</span>
       </Link>
     </>
   );

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ChatButton, UserAvatar } from "quick-chat-react";
 import type { UserData } from "quick-chat-react";
 import { UserSwitcher } from "../UserSwitcher/UserSwitcher";
@@ -20,6 +20,7 @@ interface HeaderProps {
 
 export function Header({ supabaseUrl, supabaseAnonKey, currentUser, onOpenChat, onLogin, onLogout, users, activeTab, onTabChange, theme, onToggleTheme }: HeaderProps) {
   const headerRef = useRef<HTMLElement>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const handler = () => {
@@ -29,10 +30,22 @@ export function Header({ supabaseUrl, supabaseAnonKey, currentUser, onOpenChat, 
     return () => window.removeEventListener("scroll", handler);
   }, []);
 
+  // Close menu on outside click
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (!(e.target as Element).closest(".header")) setMobileMenuOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [mobileMenuOpen]);
+
+  const closeMenu = () => setMobileMenuOpen(false);
+
   return (
     <header className="header" ref={headerRef}>
       <div className="container header__inner">
-        <button className="header__logo" onClick={() => onTabChange("home")}>
+        <button className="header__logo" onClick={() => { onTabChange("home"); closeMenu(); }}>
            Demo Startup
         </button>
 
@@ -111,7 +124,57 @@ export function Header({ supabaseUrl, supabaseAnonKey, currentUser, onOpenChat, 
               floating={false}
             />
           )}
+
+          {/* Hamburger — mobile only */}
+          <button
+            className="header__hamburger"
+            onClick={() => setMobileMenuOpen((v) => !v)}
+            aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={mobileMenuOpen}
+          >
+            <span className={`header__hamburger-icon${mobileMenuOpen ? " header__hamburger-icon--open" : ""}`}>
+              <span /><span /><span />
+            </span>
+          </button>
         </div>
+      </div>
+
+      {/* Mobile dropdown menu */}
+      <div className={`header__mobile-menu${mobileMenuOpen ? " header__mobile-menu--open" : ""}`}>
+        <nav className="header__mobile-nav">
+          <button
+            className={`header__mobile-tab${activeTab === "home" ? " header__mobile-tab--active" : ""}`}
+            onClick={() => { onTabChange("home"); closeMenu(); }}
+          >
+            Home
+          </button>
+          <button
+            className={`header__mobile-tab${activeTab === "chat" ? " header__mobile-tab--active" : ""}`}
+            onClick={() => { onTabChange("chat"); closeMenu(); }}
+          >
+            Chat
+          </button>
+          <button
+            className={`header__mobile-tab${activeTab === "docs" ? " header__mobile-tab--active" : ""}`}
+            onClick={() => { onTabChange("docs"); closeMenu(); }}
+          >
+            Docs
+          </button>
+          {activeTab === "home" && (
+            <>
+              <a href="#features" onClick={closeMenu}>Features</a>
+              <a href="#team" onClick={closeMenu}>Team</a>
+            </>
+          )}
+          <a
+            href="https://github.com/andreikornusko/quick-chat-react"
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={closeMenu}
+          >
+            GitHub ↗
+          </a>
+        </nav>
       </div>
     </header>
   );

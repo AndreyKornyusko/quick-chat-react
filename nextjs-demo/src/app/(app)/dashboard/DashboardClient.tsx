@@ -4,11 +4,10 @@ import { useState } from "react";
 import { ChatPanel } from "@/components/chat/ChatPanel";
 
 export function DashboardClient() {
-  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [unreadCount, setUnreadCount] = useState(0);
 
   return (
-    <div className="h-[calc(100dvh-64px)]">
+    <div className="h-[calc(100dvh-128px)] md:h-[calc(100dvh-64px)]">
       {/* Desktop: QuickChat inline, full height */}
       <div className="hidden md:flex flex-col h-full">
         <div
@@ -21,7 +20,6 @@ export function DashboardClient() {
           <ChatPanel
             height="100%"
             onUnreadCountChange={setUnreadCount}
-            onConversationSelect={(id) => setSelectedConversationId(id)}
           />
         </div>
       </div>

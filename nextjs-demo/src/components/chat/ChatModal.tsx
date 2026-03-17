@@ -12,12 +12,13 @@ interface ChatModalProps {
 export function ChatModal({ open, onClose, onUnreadCountChange }: ChatModalProps) {
   return (
     <div
-      className={`fixed bottom-20 right-4 z-50 flex flex-col bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden transition-all duration-300 ease-in-out ${
-        open
+      className={`fixed z-50 flex flex-col bg-white dark:bg-slate-900 shadow-2xl overflow-hidden transition-all duration-300 ease-in-out
+        inset-0 rounded-none border-0
+        sm:inset-auto sm:bottom-20 sm:right-4 sm:w-[390px] sm:h-[680px] sm:rounded-2xl sm:border sm:border-slate-200 dark:sm:border-slate-700
+        ${open
           ? "opacity-100 translate-y-0 pointer-events-auto"
           : "opacity-0 translate-y-6 pointer-events-none"
-      }`}
-      style={{ width: 390, height: 680 }}
+        }`}
     >
       {/* Modal header */}
       <div className="flex items-center justify-between px-4 h-14 border-b border-slate-200 dark:border-slate-700 shrink-0">

@@ -34,11 +34,14 @@ export function Navbar() {
   }
 
   return (
-    <header className="h-16 border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 md:px-6 flex items-center justify-between shrink-0 z-40">
+    <header className="sticky top-0 z-40 h-16 border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 md:px-6 flex items-center justify-between shrink-0">
       {/* Logo */}
-      <Link href="/" className="flex items-center gap-2 font-bold text-slate-900 dark:text-white">
-        <MessageSquare className="h-5 w-5 text-indigo-600" />
-        <span>QuickChat Next.js Demo</span>
+      <Link href="/" className="flex items-center gap-2 font-bold text-slate-900 dark:text-white min-w-0">
+        <MessageSquare className="h-5 w-5 text-indigo-600 shrink-0" />
+        <span className="truncate">
+          <span>QuickChat</span>
+          <span className="hidden sm:inline"> Next.js Demo</span>
+        </span>
       </Link>
 
       {/* Desktop nav */}

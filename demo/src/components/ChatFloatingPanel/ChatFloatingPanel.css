@@ -2,7 +2,7 @@
   position: fixed;
   bottom: 5rem;
   right: 1.5rem;
-  z-index: 50;
+  z-index: 200;
   width: 390px;
   height: 680px;
   max-width: calc(100vw - 2rem);
