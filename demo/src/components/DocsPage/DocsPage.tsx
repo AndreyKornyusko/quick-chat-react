@@ -176,8 +176,10 @@ export function DocsPage() {
         <section className="docs-section">
           <H2 id="intro">Introduction</H2>
           <p>
-            <strong>quick-chat-react</strong> is a drop-in real-time chat library for React apps backed by{" "}
-            <a href="https://supabase.com" target="_blank" rel="noopener noreferrer">Supabase</a>.
+            <strong>quick-chat-react</strong> is the fastest way to add real-time chat to your React MVP.
+            Drop in one component, pass your{" "}
+            <a href="https://supabase.com" target="_blank" rel="noopener noreferrer">Supabase</a>{" "}
+            credentials, and ship a full-featured chat experience — in minutes, not weeks.
           </p>
           <Note>
             <strong>Requires Supabase.</strong> If your project uses Firebase, Auth0, or a custom backend,
@@ -190,6 +192,7 @@ export function DocsPage() {
 
           <h3 style={{ marginTop: "1.5rem" }}>Who it's for</h3>
           <ul className="docs-list">
+            <li><strong>Quick MVP prototyping</strong> — ship a fully-featured chat in minutes, not weeks</li>
             <li><strong>Startups</strong> — use built-in auth as your user system and extend the schema for your product</li>
             <li><strong>Lovable + Supabase projects</strong> — add chat in 10 minutes, no backend changes needed</li>
             <li>Any <strong>React + Supabase</strong> app using email/password, Google, or GitHub auth</li>

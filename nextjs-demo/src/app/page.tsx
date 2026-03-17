@@ -5,13 +5,13 @@ import { HomeChatButton } from "./HomeChatButton";
 import { HomeHeaderAuth } from "./HomeHeaderAuth";
 
 export const metadata: Metadata = {
-  title: "QuickChat Demo — Drop-in React Chat for Supabase",
+  title: "QuickChat Demo — Drop-in Chat for React MVPs & Supabase Apps",
   description:
-    "Test project for quick-chat-react v1.0.4: drop-in real-time chat with external Supabase auth, group chats, voice messages, file uploads, emoji reactions and read receipts.",
+    "Add real-time chat to your React MVP in minutes. Drop-in component with group chats, voice messages, file uploads, emoji reactions, and read receipts — backed by Supabase.",
   openGraph: {
-    title: "QuickChat Demo",
+    title: "QuickChat — Drop-in Chat for React MVPs",
     description:
-      "Drop-in real-time chat for React + Supabase. Test project for quick-chat-react.",
+      "The fastest way to add real-time chat to your React MVP. One component, full-featured chat, backed by Supabase.",
   },
 };
 

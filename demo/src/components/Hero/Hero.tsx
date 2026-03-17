@@ -9,17 +9,17 @@ export function Hero({ onOpenChat, isLoggedIn }: HeroProps) {
   return (
     <section className="hero" id="hero">
       <div className="container">
-        <div className="hero__badge">Open Source · MIT License</div>
+        <div className="hero__badge">🚀 Built for MVP Prototyping · Open Source · MIT</div>
 
         <h1 className="hero__headline">
-          Add Real-Time Chat to Your App<br />
-          <span>in Minutes</span>
+          Ship Real-Time Chat in Your MVP<br />
+          <span>in Minutes, Not Weeks</span>
         </h1>
 
         <p className="hero__sub">
-          Drop in one component, pass your Supabase credentials, and ship a
-          full-featured chat experience — voice messages, file uploads, emoji
-          reactions, and more.
+          One component, your Supabase credentials, and you're done.
+          Voice messages, file uploads, group chats, emoji reactions —
+          everything your MVP needs to validate fast.
         </p>
 
         <div className="hero__cta">

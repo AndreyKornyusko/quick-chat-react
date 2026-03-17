@@ -4,7 +4,9 @@
 ![npm downloads](https://img.shields.io/npm/dm/quick-chat-react)
 ![license](https://img.shields.io/npm/l/quick-chat-react)
 
-Drop-in real-time chat for React apps built on **[Supabase](https://supabase.com)**.
+**The fastest way to add real-time chat to your React MVP.**
+
+Drop-in chat component for React apps built on **[Supabase](https://supabase.com)** — go from zero to a fully-featured chat in minutes, not weeks.
 
 [![Live Demo](https://img.shields.io/badge/demo-live-green)](https://quick-chat-react.vercel.app)
 
@@ -32,14 +34,16 @@ pnpm add quick-chat-react
 
 ### Why quick-chat-react?
 
-• ⚡ Add full chat to your app in minutes  
-• 🔐 Uses your existing Supabase Auth users  
-• 💬 Real-time messaging powered by Supabase Realtime  
-• 📁 File uploads, voice messages, reactions, and groups included  
+• 🚀 **Ship your MVP faster** — full chat UI ready in one `npm install`
+• ⚡ Add to any existing app in minutes, not weeks
+• 🔐 Uses your existing Supabase Auth users — no extra auth setup
+• 💬 Real-time messaging powered by Supabase Realtime
+• 📁 File uploads, voice messages, reactions, and groups included
 • 🎨 Works with any React UI layout
 
 ## Perfect for
 
+- **MVP prototyping** — validate your idea with real chat before building from scratch
 - SaaS apps
 - Startup MVPs
 - Internal team tools
@@ -68,6 +72,7 @@ Then read your custom fields with your own Supabase client alongside the library
 
 ## Who it's for
 
+- **Quick MVP prototyping** — ship a fully-featured chat in minutes, not weeks
 - **Startups** — use built-in auth as your user system and extend the schema for your product
 - **Lovable + Supabase projects** — add chat in 10 minutes, no backend changes needed
 - Any **React + Supabase** app using email/password, Google, or GitHub auth
