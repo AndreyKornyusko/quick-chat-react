@@ -31,6 +31,23 @@ const NAV: NavItem[] = [
     ],
   },
   {
+    id: "responsive",
+    label: "Responsive Design",
+    children: [
+      { id: "responsive-layout", label: "Layout breakpoint" },
+      { id: "responsive-mobile-layout", label: "mobileLayout prop" },
+      { id: "responsive-mobile-ux", label: "Mobile UX details" },
+    ],
+  },
+  {
+    id: "theming",
+    label: "Custom Theming",
+    children: [
+      { id: "theming-colors", label: "Color tokens" },
+      { id: "theming-background", label: "Chat background" },
+    ],
+  },
+  {
     id: "guides",
     label: "Guides",
     children: [
@@ -543,6 +560,186 @@ const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
               <tr><td><code>refreshToken</code></td><td><code>string</code></td><td>Yes (external)</td><td>For auto-refresh. Omitting breaks sessions after 1 h.</td></tr>
             </tbody>
           </table>
+        </section>
+
+        {/* ── Responsive Design ────────────────────────────────────── */}
+        <section className="docs-section">
+          <H2 id="responsive">Responsive Design</H2>
+          <p>
+            quick-chat-react is built mobile-first. Layout, interaction patterns, and visual chrome all adapt
+            to the viewport — no configuration required.
+          </p>
+
+          <H3 id="responsive-layout">Layout breakpoint</H3>
+          <p>
+            On viewports <strong>≥ 768 px</strong>, the sidebar (320–380 px fixed width) and the chat window
+            render side by side — the standard desktop messaging layout.
+          </p>
+          <p style={{ marginTop: "0.75rem" }}>
+            Below 768 px the component switches to a <strong>single-panel navigation model</strong>: the sidebar
+            and the conversation view are never shown simultaneously. Selecting a conversation navigates to the
+            chat view; a back arrow returns to the sidebar. This mirrors the navigation model of native iOS and
+            Android messaging apps and avoids cramped split-view layouts on small screens.
+          </p>
+          <Code>{`Desktop (≥ 768 px)           Mobile (< 768 px)
+┌──────────┬──────────────┐   ┌──────────────────────┐
+│ Sidebar  │  Chat window │   │ Sidebar               │
+│          │              │   │ — tap conversation —  │
+│          │              │   ├──────────────────────┤
+│          │              │   │ Chat window  ← back  │
+└──────────┴──────────────┘   └──────────────────────┘`}</Code>
+
+          <H3 id="responsive-mobile-layout">mobileLayout prop</H3>
+          <p>
+            <code>mobileLayout=&#123;true&#125;</code> activates single-panel navigation regardless of viewport
+            width. Use it whenever the component lives in a constrained container — a floating panel, modal, or
+            narrow sidebar — where a split view would be too cramped even on a wide screen.
+          </p>
+          <Code>{`// Floating chat panel anchored bottom-right
+<QuickChat
+  supabaseUrl={url}
+  supabaseAnonKey={key}
+  mobileLayout={true}
+  height="680px"
+  width="390px"
+/>`}</Code>
+          <Tip>
+            <code>mobileLayout</code> is the correct prop to set when rendering <code>&lt;QuickChat&gt;</code>{" "}
+            inside a modal or floating panel. The component detects its own viewport breakpoint, not the container
+            width — so without this prop a narrow panel on a desktop screen still renders the desktop split-panel layout.
+          </Tip>
+
+          <H3 id="responsive-mobile-ux">Mobile UX details</H3>
+          <p>On mobile the component adopts native-app conventions throughout:</p>
+          <table className="docs-table">
+            <thead>
+              <tr><th>Detail</th><th>Behavior</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Fixed chrome</strong></td>
+                <td>
+                  The conversation header and message input bar are <code>position: fixed</code>, anchored to the
+                  top and bottom of the viewport. The message list scrolls freely underneath — exactly as in a
+                  native messaging app.
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Bottom sheets</strong></td>
+                <td>
+                  The emoji picker, message context menu, and reaction picker all appear as slide-up bottom
+                  sheets with a blurred backdrop overlay, rather than inline popovers or dropdowns.
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Adaptive input</strong></td>
+                <td>
+                  The message input uses a pill shape and backdrop blur on mobile. On desktop it renders as a
+                  standard rounded-rectangle input field without the blur.
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Safe-area insets</strong></td>
+                <td>
+                  Interactive surfaces respect <code>env(safe-area-inset-*)</code> so the UI is not obscured by
+                  the iOS home indicator or notch on physical devices.
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Chat background</strong></td>
+                <td>
+                  A configurable gradient with a subtle icon pattern is applied to the message area on mobile
+                  only. The desktop message area is transparent against your app background. Disable with{" "}
+                  <code>showChatBackground=&#123;false&#125;</code> or customize colors via <code>themeColors</code>.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        {/* ── Custom Theming ────────────────────────────────────────── */}
+        <section className="docs-section">
+          <H2 id="theming">Custom Theming</H2>
+          <p>
+            <code>&lt;QuickChat&gt;</code> supports two theming props: <code>themeColors</code> for overriding
+            specific color tokens, and <code>showChatBackground</code> to toggle the mobile chat body gradient
+            and background pattern.
+          </p>
+
+          <H3 id="theming-colors">Color tokens</H3>
+          <p>
+            Pass <code>themeColors</code> with <code>light</code> and/or <code>dark</code> keys to override
+            individual color tokens. Values are space-separated HSL components — the same format used by the
+            library's CSS variables (e.g. <code>"270 70% 55%"</code>).
+          </p>
+          <Code>{`import { QuickChat } from "quick-chat-react";
+
+<QuickChat
+  supabaseUrl={url}
+  supabaseAnonKey={key}
+  themeColors={{
+    light: {
+      primary:          "270 70% 55%",   // purple accent
+      chatBubbleOut:    "270 60% 90%",   // outgoing bubble
+      chatBubbleIn:     "0 0% 100%",     // incoming bubble
+      chatGradientFrom: "270 50% 45%",   // gradient start
+      chatGradientVia:  "290 55% 50%",   // gradient mid
+      chatGradientTo:   "310 50% 55%",   // gradient end
+    },
+    dark: {
+      primary:          "270 70% 65%",
+      chatBubbleOut:    "270 40% 25%",
+      chatBubbleIn:     "210 14% 17%",
+      chatGradientFrom: "270 35% 18%",
+      chatGradientVia:  "290 30% 22%",
+      chatGradientTo:   "310 28% 20%",
+    },
+  }}
+/>`}</Code>
+
+          <Tip>
+            You only need to pass the tokens you want to override — all others fall back to the library defaults.
+            You can supply just <code>light</code>, just <code>dark</code>, or both.
+          </Tip>
+
+          <table className="docs-table">
+            <thead>
+              <tr><th>Token</th><th>CSS variable</th><th>Description</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>primary</code></td><td><code>--primary</code></td><td>Accent color — buttons, active items, read receipts</td></tr>
+              <tr><td><code>primaryForeground</code></td><td><code>--primary-foreground</code></td><td>Text on primary-colored surfaces</td></tr>
+              <tr><td><code>background</code></td><td><code>--background</code></td><td>Component background</td></tr>
+              <tr><td><code>foreground</code></td><td><code>--foreground</code></td><td>Default text color</td></tr>
+              <tr><td><code>muted</code></td><td><code>--muted</code></td><td>Subtle background for muted elements</td></tr>
+              <tr><td><code>mutedForeground</code></td><td><code>--muted-foreground</code></td><td>Text on muted backgrounds</td></tr>
+              <tr><td><code>border</code></td><td><code>--border</code></td><td>Border and input outline color</td></tr>
+              <tr><td><code>chatBubbleOut</code></td><td><code>--chat-bubble-out</code></td><td>Outgoing chat bubble background</td></tr>
+              <tr><td><code>chatBubbleOutForeground</code></td><td><code>--chat-bubble-out-foreground</code></td><td>Outgoing chat bubble text</td></tr>
+              <tr><td><code>chatBubbleIn</code></td><td><code>--chat-bubble-in</code></td><td>Incoming chat bubble background</td></tr>
+              <tr><td><code>chatBubbleInForeground</code></td><td><code>--chat-bubble-in-foreground</code></td><td>Incoming chat bubble text</td></tr>
+              <tr><td><code>chatGradientFrom</code></td><td><code>--chat-gradient-from</code></td><td>Chat body gradient start (mobile)</td></tr>
+              <tr><td><code>chatGradientVia</code></td><td><code>--chat-gradient-via</code></td><td>Chat body gradient mid (mobile)</td></tr>
+              <tr><td><code>chatGradientTo</code></td><td><code>--chat-gradient-to</code></td><td>Chat body gradient end (mobile)</td></tr>
+            </tbody>
+          </table>
+
+          <H3 id="theming-background">Chat background</H3>
+          <p>
+            By default the chat message area shows a Telegram-style gradient and a subtle icon pattern on
+            mobile screens. Set <code>showChatBackground=&#123;false&#125;</code> to disable both for a clean,
+            plain background — useful when you've set a custom <code>background</code> color token or want a
+            minimal look.
+          </p>
+          <Code>{`<QuickChat
+  supabaseUrl={url}
+  supabaseAnonKey={key}
+  showChatBackground={false}
+/>`}</Code>
+          <Note>
+            <code>showChatBackground</code> only affects mobile screens. On desktop the chat area is always
+            transparent against the app background.
+          </Note>
         </section>
 
         {/* ── Guides ────────────────────────────────────────────────── */}

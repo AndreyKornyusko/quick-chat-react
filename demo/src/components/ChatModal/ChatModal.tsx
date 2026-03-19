@@ -1,6 +1,35 @@
 import { useEffect } from "react";
-import { QuickChat, type UserData } from "quick-chat-react";
+import { QuickChat, type UserData, type ThemeColors } from "quick-chat-react";
 import "./ChatModal.css";
+
+const CUSTOM_THEME: ThemeColors = {
+  light: {
+    primary:                 "258 90% 60%",
+    primaryForeground:       "0 0% 100%",
+    chatBubbleOut:           "258 65% 76%",
+    chatBubbleOutForeground: "258 50% 10%",
+    chatBubbleIn:            "258 20% 96%",
+    chatBubbleInForeground:  "258 30% 15%",
+    muted:                   "258 25% 82%",
+    mutedForeground:         "258 35% 28%",
+    chatGradientFrom:        "258 70% 55%",
+    chatGradientVia:         "280 65% 58%",
+    chatGradientTo:          "310 60% 60%",
+  },
+  dark: {
+    primary:                 "258 85% 68%",
+    primaryForeground:       "0 0% 100%",
+    chatBubbleOut:           "258 50% 32%",
+    chatBubbleOutForeground: "258 80% 94%",
+    chatBubbleIn:            "258 18% 20%",
+    chatBubbleInForeground:  "210 15% 90%",
+    muted:                   "258 20% 22%",
+    mutedForeground:         "258 30% 70%",
+    chatGradientFrom:        "258 45% 18%",
+    chatGradientVia:         "275 40% 22%",
+    chatGradientTo:          "300 35% 20%",
+  },
+};
 
 interface ChatModalProps {
   supabaseUrl: string;
@@ -60,6 +89,7 @@ export function ChatModal({ supabaseUrl, supabaseAnonKey, currentUser, onClose }
               supabaseAnonKey={supabaseAnonKey}
               authMode="external"
               userData={currentUser}
+              themeColors={CUSTOM_THEME}
               height="100%"
               width="100%"
             />
@@ -69,6 +99,7 @@ export function ChatModal({ supabaseUrl, supabaseAnonKey, currentUser, onClose }
               supabaseUrl={supabaseUrl}
               supabaseAnonKey={supabaseAnonKey}
               authMode="built-in"
+              themeColors={CUSTOM_THEME}
               height="100%"
               width="100%"
             />

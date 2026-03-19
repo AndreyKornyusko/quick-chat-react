@@ -320,6 +320,8 @@ For a user to appear in search results they must have a `profiles` row in your S
 | `authMode` | `"built-in" \| "external"` | `"built-in"` | Auth flow to use. |
 | `userData` | `UserData` | — | Required when `authMode="external"`. |
 | `theme` | `"light" \| "dark" \| "system"` | `"system"` | UI color theme. |
+| `themeColors` | `ThemeColors` | — | Custom color tokens for light and/or dark theme. See [Custom theming](#custom-theming). |
+| `showChatBackground` | `boolean` | `true` | Show the chat body gradient and background pattern on mobile. Set `false` for a plain background. |
 | `showGroups` | `boolean` | `true` | Show group conversations in the sidebar. |
 | `allowVoiceMessages` | `boolean` | `true` | Enable voice message recording. |
 | `allowFileUpload` | `boolean` | `true` | Enable file and photo uploads. |
@@ -385,6 +387,117 @@ For a user to appear in search results they must have a `profiles` row in your S
 | `onLogin` | `() => void` | — | Called when "Sign in" is clicked (no active session). |
 | `className` | `string` | — | Extra CSS classes on the trigger element. |
 | `style` | `CSSProperties` | — | Inline styles on the trigger element. |
+
+---
+
+## Responsive design
+
+quick-chat-react is built mobile-first. Layout, interaction patterns, and visual chrome all adapt to the viewport — no configuration required.
+
+### Two-panel ↔ single-panel layout
+
+On viewports **≥ 768 px** the sidebar (320–380 px fixed width) and the chat window sit side by side — the standard desktop chat layout.
+
+Below 768 px, the component switches to a **single-panel navigation** model: the sidebar and the conversation view are never shown simultaneously. Selecting a conversation slides to the chat view; a back arrow returns to the sidebar. This mirrors the navigation model of native mobile messaging apps and avoids cramped split-view layouts on small screens.
+
+```
+Desktop (≥ 768 px)          Mobile (< 768 px)
+┌──────────┬──────────────┐  ┌──────────────────────┐
+│ Sidebar  │  Chat window │  │ Sidebar  ← back arrow │
+│          │              │  │ — tap conversation —  │
+│          │              │  ├──────────────────────┤
+│          │              │  │ Chat window           │
+└──────────┴──────────────┘  └──────────────────────┘
+```
+
+### Force mobile layout for compact containers
+
+`mobileLayout={true}` activates single-panel mode regardless of viewport width. Use it whenever the component is embedded in a constrained space — a floating panel, modal, or a narrow sidebar — where a split-panel would be too cramped even on a wide screen.
+
+```tsx
+// Floating chat panel anchored bottom-right
+<QuickChat
+  supabaseUrl={url}
+  supabaseAnonKey={key}
+  mobileLayout={true}
+  height="680px"
+  width="390px"
+/>
+```
+
+### Mobile UI details
+
+On mobile the component adopts native-app conventions:
+
+- **Fixed chrome** — the conversation header and message input bar are `position: fixed`, anchored to the top and bottom of the viewport respectively. The message list scrolls freely underneath, exactly as in a native messaging app.
+- **Bottom sheets** — the emoji picker, message context menu, and reaction picker all appear as slide-up bottom sheets with a blurred backdrop overlay, rather than inline popovers.
+- **Rounded input** — the message input field uses a pill shape on mobile; on desktop it uses a standard rounded rectangle. The input also applies a backdrop blur against the gradient background.
+- **Safe-area awareness** — interactive areas respect `env(safe-area-inset-*)`, so the UI is not obscured by iOS home bars or notches on physical devices.
+- **Telegram-style gradient background** — the message area renders a configurable gradient with a subtle pattern overlay on mobile. Transparent on desktop. Disable with `showChatBackground={false}` or customize via `themeColors`.
+
+---
+
+## Custom theming
+
+### Override colors
+
+Pass `themeColors` to customize specific color tokens for light and/or dark mode. Values are space-separated HSL components (matching the library's internal CSS variable format).
+
+```tsx
+<QuickChat
+  supabaseUrl={url}
+  supabaseAnonKey={key}
+  themeColors={{
+    light: {
+      primary:             "270 70% 55%",   // purple primary
+      chatBubbleOut:       "270 60% 90%",   // outgoing bubble background
+      chatBubbleIn:        "0 0% 100%",     // incoming bubble background
+      chatGradientFrom:    "270 50% 45%",   // chat body gradient start
+      chatGradientVia:     "290 55% 50%",   // chat body gradient mid
+      chatGradientTo:      "310 50% 55%",   // chat body gradient end
+    },
+    dark: {
+      primary:             "270 70% 65%",
+      chatBubbleOut:       "270 40% 25%",
+      chatBubbleIn:        "210 14% 17%",
+      chatGradientFrom:    "270 35% 18%",
+      chatGradientVia:     "290 30% 22%",
+      chatGradientTo:      "310 28% 20%",
+    },
+  }}
+/>
+```
+
+#### Available tokens
+
+| Token | CSS variable | Description |
+|---|---|---|
+| `primary` | `--primary` | Primary / accent color — buttons, active items, read receipts |
+| `primaryForeground` | `--primary-foreground` | Text on primary-colored surfaces |
+| `background` | `--background` | Page / component background |
+| `foreground` | `--foreground` | Default text color |
+| `muted` | `--muted` | Subtle background for muted UI elements |
+| `mutedForeground` | `--muted-foreground` | Text on muted backgrounds |
+| `border` | `--border` | Border and input outline color |
+| `chatBubbleOut` | `--chat-bubble-out` | Outgoing chat bubble background |
+| `chatBubbleOutForeground` | `--chat-bubble-out-foreground` | Outgoing chat bubble text |
+| `chatBubbleIn` | `--chat-bubble-in` | Incoming chat bubble background |
+| `chatBubbleInForeground` | `--chat-bubble-in-foreground` | Incoming chat bubble text |
+| `chatGradientFrom` | `--chat-gradient-from` | Chat body gradient start (mobile) |
+| `chatGradientVia` | `--chat-gradient-via` | Chat body gradient mid (mobile) |
+| `chatGradientTo` | `--chat-gradient-to` | Chat body gradient end (mobile) |
+
+### Disable chat background
+
+To remove the Telegram-style gradient and background pattern on mobile (e.g. for a minimal look or when using a custom background color):
+
+```tsx
+<QuickChat
+  supabaseUrl={url}
+  supabaseAnonKey={key}
+  showChatBackground={false}
+/>
+```
 
 ---
 

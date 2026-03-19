@@ -60,9 +60,8 @@ export const VoiceMessagePlayer = ({ url, isMine }: VoiceMessagePlayerProps) => 
   const updateProgress = useCallback(() => {
     const audio = audioRef.current;
     if (!audio) return;
-    if (audio.duration) {
+    if (isFinite(audio.duration) && audio.duration > 0) {
       setProgress(audio.currentTime / audio.duration);
-      setDuration(audio.duration);
     }
     if (!audio.paused) {
       animRef.current = requestAnimationFrame(updateProgress);
@@ -74,7 +73,20 @@ export const VoiceMessagePlayer = ({ url, isMine }: VoiceMessagePlayerProps) => 
     audioRef.current = audio;
 
     audio.addEventListener("loadedmetadata", () => {
-      setDuration(audio.duration);
+      if (isFinite(audio.duration)) {
+        setDuration(audio.duration);
+      } else {
+        // MediaRecorder blobs lack duration metadata → browser reports Infinity.
+        // Seeking past the end forces it to scan the file and fire durationchange.
+        audio.currentTime = 1e101;
+      }
+    });
+
+    audio.addEventListener("durationchange", () => {
+      if (isFinite(audio.duration)) {
+        setDuration(audio.duration);
+        audio.currentTime = 0;
+      }
     });
 
     audio.addEventListener("ended", () => {

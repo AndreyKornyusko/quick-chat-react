@@ -25,6 +25,62 @@ export interface UserData {
   refreshToken?: string;
 }
 
+/**
+ * Color tokens you can override for a theme variant.
+ * All values are space-separated HSL components without the hsl() wrapper,
+ * matching the format used by the library's CSS variables.
+ *
+ * @example
+ * // Purple primary
+ * primary: "270 70% 55%"
+ * // Warm chat bubbles
+ * chatBubbleOut: "30 90% 88%"
+ */
+export interface ThemeColorTokens {
+  /** Primary / accent color — buttons, active items, read receipts */
+  primary?: string;
+  /** Primary foreground (text on primary-colored surfaces) */
+  primaryForeground?: string;
+  /** Page / component background */
+  background?: string;
+  /** Default text color */
+  foreground?: string;
+  /** Subtle background for muted UI elements */
+  muted?: string;
+  /** Text on muted backgrounds */
+  mutedForeground?: string;
+  /** Border and input outline color */
+  border?: string;
+  /** Outgoing chat bubble background */
+  chatBubbleOut?: string;
+  /** Outgoing chat bubble text */
+  chatBubbleOutForeground?: string;
+  /** Incoming chat bubble background */
+  chatBubbleIn?: string;
+  /** Incoming chat bubble text */
+  chatBubbleInForeground?: string;
+  /** Chat body gradient start color (mobile) */
+  chatGradientFrom?: string;
+  /** Chat body gradient mid color (mobile) */
+  chatGradientVia?: string;
+  /** Chat body gradient end color (mobile) */
+  chatGradientTo?: string;
+}
+
+/**
+ * Per-theme color overrides passed to `<QuickChat themeColors={...} />`.
+ *
+ * @example
+ * themeColors={{
+ *   light: { primary: "270 70% 55%", chatBubbleOut: "270 60% 90%" },
+ *   dark:  { primary: "270 70% 65%", chatBubbleOut: "270 40% 25%" },
+ * }}
+ */
+export interface ThemeColors {
+  light?: ThemeColorTokens;
+  dark?: ThemeColorTokens;
+}
+
 export interface QuickChatConfig {
   showGroups: boolean;
   allowVoiceMessages: boolean;
@@ -32,6 +88,8 @@ export interface QuickChatConfig {
   allowReactions: boolean;
   showOnlineStatus: boolean;
   showReadReceipts: boolean;
+  /** When false, the chat body gradient and background pattern are hidden (default: true) */
+  showChatBackground: boolean;
   /**
    * Optional custom file upload handler.
    * When provided, the lib skips Supabase Storage and calls this instead.
@@ -50,6 +108,23 @@ export interface QuickChatProps {
   userData?: UserData;
   /** UI color theme */
   theme?: "light" | "dark" | "system";
+  /**
+   * Custom color tokens for light and/or dark theme.
+   * Overrides the library's default colors for specific design tokens.
+   * Values are space-separated HSL components (e.g. "210 78% 51%").
+   *
+   * @example
+   * themeColors={{
+   *   light: { primary: "270 70% 55%", chatBubbleOut: "270 60% 90%" },
+   *   dark:  { primary: "270 70% 65%", chatBubbleOut: "270 40% 25%" },
+   * }}
+   */
+  themeColors?: ThemeColors;
+  /**
+   * Show the chat body gradient and background icon pattern on mobile (default: true).
+   * Set to false for a clean, plain background.
+   */
+  showChatBackground?: boolean;
   /** Use built-in Supabase auth or pass your own user data */
   authMode?: "built-in" | "external";
   /** Show group conversations in sidebar */

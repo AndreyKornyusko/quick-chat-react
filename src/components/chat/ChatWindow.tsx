@@ -499,7 +499,7 @@ export const ChatWindow = ({ conversationId, onBack }: ChatWindowProps) => {
   const otherUser = conversation?.type === "private" ? conversation.members.find((m) => m.user_id !== user?.id) : null;
 
   return (
-    <div className="flex flex-1 flex-col h-full overflow-hidden pt-[60px] md:pt-0">
+    <div className="flex flex-1 flex-col h-full overflow-hidden md:pt-0">
       {/* Header */}
       <div className="flex items-center gap-3 border-b border-border px-4 py-3 fixed top-0 left-0 right-0 z-40 bg-background md:relative md:top-auto md:left-auto md:right-auto md:z-auto">
         {onBack && (
@@ -589,10 +589,12 @@ export const ChatWindow = ({ conversationId, onBack }: ChatWindowProps) => {
       )}
 
       {/* Messages area */}
-      <div className="relative flex-1 overflow-hidden md:bg-transparent bg-gradient-to-br from-[hsl(var(--chat-gradient-from))] via-[hsl(var(--chat-gradient-via))] to-[hsl(var(--chat-gradient-to))]">
-        <div className="md:hidden">
-          <ChatBackgroundPattern />
-        </div>
+      <div className={`relative flex-1 overflow-hidden ${config.showChatBackground ? "md:bg-transparent bg-gradient-to-br from-[hsl(var(--chat-gradient-from))] via-[hsl(var(--chat-gradient-via))] to-[hsl(var(--chat-gradient-to))]" : ""}`}>
+        {config.showChatBackground && (
+          <div className="md:hidden">
+            <ChatBackgroundPattern />
+          </div>
+        )}
         <div
           ref={scrollContainerRef}
           className="h-full overflow-y-auto px-4 py-2 md:pb-2 pb-20"
@@ -789,7 +791,7 @@ export const ChatWindow = ({ conversationId, onBack }: ChatWindowProps) => {
         )}
 
         {/* Emoji button: always on desktop, only when typing on mobile */}
-        {!isVoiceRecording && config.allowReactions && <div className={`relative ${!text.trim() ? "hidden md:block" : ""}`} ref={emojiPickerRef}>
+        {!isVoiceRecording && config.allowReactions && <div className="relative" ref={emojiPickerRef}>
           <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full md:rounded-md shrink-0" onClick={() => setShowEmojiPicker((v) => !v)}>
             <Smile className="h-5 w-5" />
           </Button>
