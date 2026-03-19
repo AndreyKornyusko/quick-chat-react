@@ -174,3 +174,10 @@ h1, h2, h3, h4 {
 [data-radix-popper-content-wrapper] {
   z-index: 1001 !important;
 }
+
+/* Ensure AlertDialog confirmation modals (and their backdrop overlay) rendered
+   by the embedded QuickChat library appear above the chat modal overlay.
+   :has() targets the portal wrapper div that directly contains the dialog. */
+:has(> [role="alertdialog"]) > * {
+  z-index: 1002 !important;
+}

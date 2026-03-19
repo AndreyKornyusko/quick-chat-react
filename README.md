@@ -563,3 +563,10 @@ onUploadFile={async (file) => {
 ### Profile visibility
 
 All authenticated users can search and view all profiles by default. This is required so users can find someone to chat with. For stricter privacy you can add a `discoverability` boolean to your `profiles` table and filter the search results via a Supabase Edge Function or your own backend.
+
+---
+
+## Support
+
+Found a bug or have a question? [Open an issue on GitHub](https://github.com/AndreyKornyusko/quick-chat-react/issues) — it's the fastest way to get help and keeps questions visible for others who run into the same thing.
+
