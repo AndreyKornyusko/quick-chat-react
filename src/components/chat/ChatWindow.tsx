@@ -16,8 +16,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { VoiceRecorder } from "./VoiceRecorder";
 import { VoiceMessagePlayer } from "./VoiceMessagePlayer";
 import { format, isToday, isYesterday } from "date-fns";
-import { useSupabase } from "@/lib/QuickChatProvider";
-import { useConfig } from "@/lib/QuickChatProvider";
+import { useSupabase, useConfig } from "@/lib/QuickChatProvider";
+import { qk } from "@/lib/queryKeys";
 import { useToast } from "@/hooks/use-toast";
 import { ForwardDialog } from "./ForwardDialog";
 import { MediaLightbox } from "./MediaLightbox";
@@ -401,11 +401,19 @@ export const ChatWindow = ({ conversationId, onBack }: ChatWindowProps) => {
 
   const handleLeaveGroup = async () => {
     if (!conversationId || !user) return;
-    const { error } = await supabase.from("conversation_members").delete().eq("conversation_id", conversationId).eq("user_id", user.id);
-    if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
-    qc.invalidateQueries({ queryKey: ["conversations"] });
+    // Optimistically remove from sidebar immediately
+    qc.setQueryData(qk.conversations(user.id), (old: ConversationWithDetails[] | undefined) =>
+      old?.filter((c) => c.id !== conversationId) ?? []
+    );
     setLeaveGroupConfirm(false);
     onBack?.();
+    const { error } = await supabase.from("conversation_members").delete().eq("conversation_id", conversationId).eq("user_id", user.id);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+      qc.invalidateQueries({ queryKey: qk.conversations(user.id) });
+      return;
+    }
+    qc.invalidateQueries({ queryKey: qk.conversations(user.id) });
     toast({ title: "You left the group" });
   };
 

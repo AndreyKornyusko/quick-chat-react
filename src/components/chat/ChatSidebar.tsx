@@ -1,9 +1,11 @@
 import { useState, useMemo, useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useConversations, ConversationWithDetails } from "@/hooks/useConversations";
 import { useAuth } from "@/contexts/AuthContext";
-import { useConfig } from "@/lib/QuickChatProvider";
+import { useConfig, useSupabase } from "@/lib/QuickChatProvider";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useProfile } from "@/hooks/useProfile";
+import { qk } from "@/lib/queryKeys";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -14,6 +16,16 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Search, Moon, Sun, LogOut, Users, UserPlus, Pin, BellOff, DoorOpen, Trash2, Bell } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ContactsDialog } from "./ContactsDialog";
@@ -25,13 +37,16 @@ interface ChatSidebarProps {
   activeConversationId: string | null;
   onSelectConversation: (id: string) => void;
   onUnreadCountChange?: (count: number) => void;
+  onConversationDeleted?: (id: string) => void;
 }
 
-export const ChatSidebar = ({ activeConversationId, onSelectConversation, onUnreadCountChange }: ChatSidebarProps) => {
+export const ChatSidebar = ({ activeConversationId, onSelectConversation, onUnreadCountChange, onConversationDeleted }: ChatSidebarProps) => {
   const { data: conversations, isLoading } = useConversations();
   const { user, signOut, authMode } = useAuth();
   const config = useConfig();
   const { theme, setTheme, resolved } = useTheme();
+  const supabase = useSupabase();
+  const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const [contactsOpen, setContactsOpen] = useState(false);
   const [groupOpen, setGroupOpen] = useState(false);
@@ -39,6 +54,26 @@ export const ChatSidebar = ({ activeConversationId, onSelectConversation, onUnre
   const { data: profile } = useProfile();
   const [pinnedIds, setPinnedIds] = useState<Set<string>>(new Set());
   const [mutedIds, setMutedIds] = useState<Set<string>>(new Set());
+  const [confirmDeleteConv, setConfirmDeleteConv] = useState<ConversationWithDetails | null>(null);
+
+  const handleDeleteConversation = async () => {
+    if (!confirmDeleteConv || !user) return;
+    const { id, type } = confirmDeleteConv;
+    // Optimistically remove from sidebar immediately
+    qc.setQueryData(qk.conversations(user.id), (old: ConversationWithDetails[] | undefined) =>
+      old?.filter((c) => c.id !== id) ?? []
+    );
+    setConfirmDeleteConv(null);
+    onConversationDeleted?.(id);
+    const { error } = await supabase.from("conversation_members").delete().eq("conversation_id", id).eq("user_id", user.id);
+    if (error) {
+      toast(error.message);
+      qc.invalidateQueries({ queryKey: qk.conversations(user.id) });
+      return;
+    }
+    qc.invalidateQueries({ queryKey: qk.conversations(user.id) });
+    toast(type === "group" ? "You left the group" : "Chat deleted");
+  };
 
   const togglePin = (id: string) => {
     setPinnedIds(prev => {
@@ -146,6 +181,7 @@ export const ChatSidebar = ({ activeConversationId, onSelectConversation, onUnre
             muted={mutedIds.has(conv.id)}
             onTogglePin={() => togglePin(conv.id)}
             onToggleMute={() => toggleMute(conv.id)}
+            onDeleteRequest={() => setConfirmDeleteConv(conv)}
           />
         ))}
       </div>
@@ -153,6 +189,30 @@ export const ChatSidebar = ({ activeConversationId, onSelectConversation, onUnre
       <ContactsDialog open={contactsOpen} onOpenChange={setContactsOpen} onStartChat={onSelectConversation} />
       <NewGroupDialog open={groupOpen} onOpenChange={setGroupOpen} onCreated={onSelectConversation} />
       {user && <UserProfileDialog open={profileOpen} onOpenChange={setProfileOpen} userId={user.id} />}
+
+      <AlertDialog open={!!confirmDeleteConv} onOpenChange={(open) => { if (!open) setConfirmDeleteConv(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {confirmDeleteConv?.type === "group" ? "Leave Group" : "Delete Chat"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {confirmDeleteConv?.type === "group"
+                ? "Are you sure you want to leave this group? You won't be able to see messages anymore."
+                : "Are you sure you want to delete this chat? This will remove it from your chat list."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConversation}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {confirmDeleteConv?.type === "group" ? "Leave" : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };
@@ -187,6 +247,7 @@ const ConversationItem = ({
   muted,
   onTogglePin,
   onToggleMute,
+  onDeleteRequest,
 }: {
   conversation: ConversationWithDetails;
   isActive: boolean;
@@ -196,6 +257,7 @@ const ConversationItem = ({
   muted: boolean;
   onTogglePin: () => void;
   onToggleMute: () => void;
+  onDeleteRequest: () => void;
 }) => {
   const name = getConversationName(conv, currentUserId);
   const avatar = getConversationAvatar(conv, currentUserId);
@@ -261,7 +323,7 @@ const ConversationItem = ({
           {muted ? "Unmute" : "Mute"}
         </ContextMenuItem>
         <ContextMenuSeparator />
-        <ContextMenuItem className="text-destructive focus:text-destructive" onClick={() => toast("Left chat")}>
+        <ContextMenuItem className="text-destructive focus:text-destructive" onClick={onDeleteRequest}>
           <DoorOpen className="mr-2 h-4 w-4" />
           {conv.type === "group" ? "Leave group" : "Delete chat"}
         </ContextMenuItem>

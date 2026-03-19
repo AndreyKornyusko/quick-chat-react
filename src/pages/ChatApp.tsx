@@ -25,6 +25,13 @@ const ChatApp = ({ mobileLayout, onUnreadCountChange, onConversationSelect }: Ch
     if (isMobile) setActiveConversationId(null);
   };
 
+  const handleConversationDeleted = (id: string) => {
+    if (activeConversationId === id) {
+      setActiveConversationId(null);
+      setShowSidebar(true);
+    }
+  };
+
   return (
     <div className="flex h-full w-full overflow-hidden bg-background">
       {(!isMobile || showSidebar) && (
@@ -33,6 +40,7 @@ const ChatApp = ({ mobileLayout, onUnreadCountChange, onConversationSelect }: Ch
             activeConversationId={activeConversationId}
             onSelectConversation={handleSelectConversation}
             onUnreadCountChange={onUnreadCountChange}
+            onConversationDeleted={handleConversationDeleted}
           />
         </div>
       )}
