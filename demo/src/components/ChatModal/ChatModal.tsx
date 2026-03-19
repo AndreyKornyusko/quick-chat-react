@@ -90,6 +90,7 @@ export function ChatModal({ supabaseUrl, supabaseAnonKey, currentUser, onClose }
               authMode="external"
               userData={currentUser}
               themeColors={CUSTOM_THEME}
+              showChatBackground={false}
               height="100%"
               width="100%"
             />
@@ -100,6 +101,7 @@ export function ChatModal({ supabaseUrl, supabaseAnonKey, currentUser, onClose }
               supabaseAnonKey={supabaseAnonKey}
               authMode="built-in"
               themeColors={CUSTOM_THEME}
+              showChatBackground={false}
               height="100%"
               width="100%"
             />
