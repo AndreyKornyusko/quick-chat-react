@@ -12,7 +12,7 @@ Drop-in chat component for React apps built on **[Supabase](https://supabase.com
 
 ## Preview
 
-![Quick Chat Preview](./docs/quick-chat-react-demo.png)
+![Quick Chat Preview](./docs/quick-chat-react-preview.png)
 
 ## Installation
 
