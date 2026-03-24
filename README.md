@@ -560,6 +560,17 @@ onUploadFile={async (file) => {
 }}
 ```
 
+### Rate limiting
+
+Message sends and emoji reactions are rate-limited at the database layer via PostgreSQL triggers — no client-side workaround is possible:
+
+| Action | Limit |
+|---|---|
+| Send message | 30 per 60 seconds per user |
+| Add reaction | 60 per 60 seconds per user |
+
+When a limit is hit, the failed message shows the reason in the chat UI instead of a generic "Not sent" error. The limits are defined in `supabase/migrations/20260324000000_rate_limiting.sql` — edit the constants there to tune them for your app.
+
 ### Profile visibility
 
 All authenticated users can search and view all profiles by default. This is required so users can find someone to chat with. For stricter privacy you can add a `discoverability` boolean to your `profiles` table and filter the search results via a Supabase Edge Function or your own backend.

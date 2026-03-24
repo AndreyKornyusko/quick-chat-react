@@ -425,8 +425,14 @@ export const ChatWindow = ({ conversationId, onBack }: ChatWindowProps) => {
 
   const handleReact = useCallback((messageId: string, emoji: string) => {
     if (!conversationId) return;
-    toggleReaction.mutate({ messageId, emoji, conversationId });
-  }, [conversationId, toggleReaction]);
+    toggleReaction.mutate({ messageId, emoji, conversationId }, {
+      onError: (err) => {
+        if (err instanceof Error && err.message.includes("Rate limit")) {
+          toast({ title: "Slow down", description: err.message, variant: "destructive" });
+        }
+      },
+    });
+  }, [conversationId, toggleReaction, toast]);
 
   const [highlightedMsgId, setHighlightedMsgId] = useState<string | null>(null);
   const [jumpToMsgId, setJumpToMsgId] = useState<string | null>(null);
@@ -1142,14 +1148,20 @@ const MessageBubble = ({
 
         {/* Failed message actions */}
         {msg._optimistic && msg._status === "failed" && (
-          <div className="mt-1 flex items-center justify-end gap-1">
-            <span className="text-[11px] text-destructive mr-1">Not sent</span>
-            <Button variant="ghost" size="sm" className="h-6 px-2 text-xs gap-1 text-primary hover:text-primary" onClick={onRetry}>
-              <RotateCcw className="h-3 w-3" />Retry
-            </Button>
-            <Button variant="ghost" size="sm" className="h-6 px-2 text-xs gap-1 text-destructive hover:text-destructive" onClick={onCancel}>
-              <Trash2 className="h-3 w-3" />Cancel
-            </Button>
+          <div className="mt-1 flex flex-col items-end gap-1">
+            <span className="text-[11px] text-destructive">
+              {msg._errorMsg?.includes("Rate limit") ? msg._errorMsg : "Not sent"}
+            </span>
+            <div className="flex items-center gap-1">
+              {!msg._errorMsg?.includes("Rate limit") && (
+                <Button variant="ghost" size="sm" className="h-6 px-2 text-xs gap-1 text-primary hover:text-primary" onClick={onRetry}>
+                  <RotateCcw className="h-3 w-3" />Retry
+                </Button>
+              )}
+              <Button variant="ghost" size="sm" className="h-6 px-2 text-xs gap-1 text-destructive hover:text-destructive" onClick={onCancel}>
+                <Trash2 className="h-3 w-3" />Cancel
+              </Button>
+            </div>
           </div>
         )}
 

@@ -57,7 +57,15 @@ const NAV: NavItem[] = [
       { id: "guide-separate", label: "Separate Project" },
     ],
   },
-  { id: "security", label: "Security" },
+  {
+    id: "security",
+    label: "Security",
+    children: [
+      { id: "security-storage", label: "Public media bucket" },
+      { id: "security-ratelimit", label: "Rate limiting" },
+      { id: "security-profiles", label: "Profile visibility" },
+    ],
+  },
 ];
 
 function flatIds(items: NavItem[]): string[] {
@@ -1077,6 +1085,30 @@ onUploadFile={async (file) => {
   const { secure_url } = await res.json();
   return secure_url;
 }}`}</Code>
+
+          <H3 id="security-ratelimit">Rate limiting</H3>
+          <p>
+            Message sends and emoji reactions are rate-limited at the database layer via PostgreSQL triggers —
+            no client-side workaround is possible:
+          </p>
+          <table className="docs-table">
+            <thead>
+              <tr><th>Action</th><th>Limit</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Send message</td><td>30 per 60 seconds per user</td></tr>
+              <tr><td>Add reaction</td><td>60 per 60 seconds per user</td></tr>
+            </tbody>
+          </table>
+          <p>
+            When a limit is hit, the failed message displays the reason in the chat UI instead of a generic
+            "Not sent" error. The Retry button is hidden — retrying immediately would just fail again.
+          </p>
+          <p>
+            To adjust the limits, edit the constants in{" "}
+            <code>supabase/migrations/20260324000000_rate_limiting.sql</code> and re-run that migration against
+            your Supabase project.
+          </p>
 
           <H3 id="security-profiles">Profile visibility</H3>
           <p>
