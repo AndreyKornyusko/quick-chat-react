@@ -1032,84 +1032,114 @@ const MessageBubble = ({
               </div>
             </div>
           ) : (
-          <div className={`relative rounded-2xl px-3 py-2 ${isOwn ? "bg-chat-bubble-out text-chat-bubble-out-foreground rounded-br-md" : "bg-chat-bubble-in text-chat-bubble-in-foreground rounded-bl-md"}`}>
-            {isGroup && !isOwn && (
-              <p
-                className="mb-0.5 text-xs font-semibold text-primary cursor-pointer hover:underline truncate max-w-[200px]"
-                onClick={() => onProfileClick?.(msg.sender_id)}
-              >{msg.sender_profile?.display_name}</p>
-            )}
-
-            {msg.reply_to && (
-              <div
-                className="mb-1 rounded border-l-2 border-primary bg-muted/50 px-2 py-1 text-xs cursor-pointer hover:bg-muted/80 transition-colors"
-                onClick={() => msg.reply_to_id && onScrollToReply?.(msg.reply_to_id)}
-              >
-                {msg.reply_to.content?.slice(0, 60)}
-              </div>
-            )}
-
-            {msg.forwarded_from_id && (
-              <div className="mb-1 flex items-center gap-1 text-xs text-muted-foreground">
-                <span className="text-sm">↗</span>
-                <span>Forwarded from </span>
-                <span
-                  className="font-semibold text-primary cursor-pointer hover:underline"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (msg.forwarded_from_profile?.sender_id) {
-                      onProfileClick?.(msg.forwarded_from_profile.sender_id);
-                    }
-                  }}
-                >
-                  {msg.forwarded_from_profile?.display_name || "Unknown"}
-                </span>
-              </div>
-            )}
-
-            {(msg.type === "photo" && msg.file_url) && (
-              <div className="mb-1 cursor-pointer overflow-hidden rounded-lg" onClick={() => onMediaClick(msg.file_url!)}>
-                <img src={msg.file_url} alt={msg.file_name || "photo"} className="max-h-60 w-full object-cover transition-transform hover:scale-105" loading="lazy" />
-              </div>
-            )}
-
-            {(msg.type === "video" && msg.file_url) && (
-              <div className="relative mb-1 cursor-pointer overflow-hidden rounded-2xl bg-black min-h-[200px] max-w-[280px]" onClick={() => onMediaClick(msg.file_url!, true)}>
-                <video src={`${msg.file_url}#t=0.1`} className="min-h-[200px] max-h-80 w-full object-cover" preload="metadata" muted playsInline />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-black/50 backdrop-blur-md">
-                    <Play className="h-5 w-5 text-white ml-0.5" fill="white" />
+          {(() => {
+            const isMediaMsg = (msg.type === "photo" || msg.type === "video") && !!msg.file_url;
+            const hasHeader = (isGroup && !isOwn) || !!msg.reply_to || !!msg.forwarded_from_id;
+            return (
+              <div className={`relative rounded-2xl overflow-hidden ${isMediaMsg ? "px-0 py-0" : "px-3 py-2"} ${isOwn ? "bg-chat-bubble-out text-chat-bubble-out-foreground rounded-br-md" : "bg-chat-bubble-in text-chat-bubble-in-foreground rounded-bl-md"}`}>
+                {isMediaMsg && hasHeader && (
+                  <div className="px-3 pt-2">
+                    {isGroup && !isOwn && (
+                      <p
+                        className="mb-0.5 text-xs font-semibold text-primary cursor-pointer hover:underline truncate max-w-[200px]"
+                        onClick={() => onProfileClick?.(msg.sender_id)}
+                      >{msg.sender_profile?.display_name}</p>
+                    )}
+                    {msg.reply_to && (
+                      <div
+                        className="mb-1 rounded border-l-2 border-primary bg-muted/50 px-2 py-1 text-xs cursor-pointer hover:bg-muted/80 transition-colors"
+                        onClick={() => msg.reply_to_id && onScrollToReply?.(msg.reply_to_id)}
+                      >
+                        {msg.reply_to.content?.slice(0, 60)}
+                      </div>
+                    )}
+                    {msg.forwarded_from_id && (
+                      <div className="mb-1 flex items-center gap-1 text-xs text-muted-foreground">
+                        <span className="text-sm">↗</span>
+                        <span>Forwarded from </span>
+                        <span
+                          className="font-semibold text-primary cursor-pointer hover:underline"
+                          onClick={(e) => { e.stopPropagation(); if (msg.forwarded_from_profile?.sender_id) onProfileClick?.(msg.forwarded_from_profile.sender_id); }}
+                        >{msg.forwarded_from_profile?.display_name || "Unknown"}</span>
+                      </div>
+                    )}
                   </div>
+                )}
+
+                {!isMediaMsg && (
+                  <>
+                    {isGroup && !isOwn && (
+                      <p
+                        className="mb-0.5 text-xs font-semibold text-primary cursor-pointer hover:underline truncate max-w-[200px]"
+                        onClick={() => onProfileClick?.(msg.sender_id)}
+                      >{msg.sender_profile?.display_name}</p>
+                    )}
+                    {msg.reply_to && (
+                      <div
+                        className="mb-1 rounded border-l-2 border-primary bg-muted/50 px-2 py-1 text-xs cursor-pointer hover:bg-muted/80 transition-colors"
+                        onClick={() => msg.reply_to_id && onScrollToReply?.(msg.reply_to_id)}
+                      >
+                        {msg.reply_to.content?.slice(0, 60)}
+                      </div>
+                    )}
+                    {msg.forwarded_from_id && (
+                      <div className="mb-1 flex items-center gap-1 text-xs text-muted-foreground">
+                        <span className="text-sm">↗</span>
+                        <span>Forwarded from </span>
+                        <span
+                          className="font-semibold text-primary cursor-pointer hover:underline"
+                          onClick={(e) => { e.stopPropagation(); if (msg.forwarded_from_profile?.sender_id) onProfileClick?.(msg.forwarded_from_profile.sender_id); }}
+                        >{msg.forwarded_from_profile?.display_name || "Unknown"}</span>
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {(msg.type === "photo" && msg.file_url) && (
+                  <div className="cursor-pointer" onClick={() => onMediaClick(msg.file_url!)}>
+                    <img src={msg.file_url} alt={msg.file_name || "photo"} className="max-h-80 w-full object-cover transition-transform hover:scale-105" loading="lazy" />
+                  </div>
+                )}
+
+                {(msg.type === "video" && msg.file_url) && (
+                  <div className="relative cursor-pointer bg-black" onClick={() => onMediaClick(msg.file_url!, true)}>
+                    <video src={`${msg.file_url}#t=0.1`} className="max-h-80 w-full object-cover" preload="metadata" muted playsInline />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-black/50 backdrop-blur-md">
+                        <Play className="h-5 w-5 text-white ml-0.5" fill="white" />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {(msg.type === "file" && msg.file_url) && (
+                  <a href={msg.file_url} target="_blank" rel="noopener noreferrer" className="mb-1 flex items-center gap-2 rounded bg-muted/50 p-2 text-sm hover:bg-muted">
+                    📎 {msg.file_name || "File"}
+                  </a>
+                )}
+
+                {(msg.type === "voice" && msg.file_url) && (
+                  <VoiceMessagePlayer url={msg.file_url} isMine={isOwn} />
+                )}
+
+                {msg.content && msg.type === "text" && (
+                  <p className="text-sm whitespace-pre-wrap break-words [overflow-wrap:anywhere]">{highlightText(msg.content)}</p>
+                )}
+
+                <div className={`mt-0.5 flex items-center justify-end gap-1 text-[10px] ${isMediaMsg ? "px-3 pb-1.5" : ""} ${isOwn ? "text-chat-bubble-out-foreground/50" : "text-chat-bubble-in-foreground/50"}`}>
+                  {msg.is_edited && <span>edited</span>}
+                  <span>{time}</span>
+                  {isOwn && (
+                    msg._optimistic && msg._status === "sending"
+                      ? <Loader2 className="h-3 w-3 animate-spin" />
+                      : msg._optimistic && msg._status === "failed"
+                      ? <AlertCircle className="h-3 w-3 text-destructive" />
+                      : hasReads ? <CheckCheck className="h-3 w-3 text-read" /> : <Check className="h-3 w-3" />
+                  )}
                 </div>
               </div>
-            )}
-
-            {(msg.type === "file" && msg.file_url) && (
-              <a href={msg.file_url} target="_blank" rel="noopener noreferrer" className="mb-1 flex items-center gap-2 rounded bg-muted/50 p-2 text-sm hover:bg-muted">
-                📎 {msg.file_name || "File"}
-              </a>
-            )}
-
-            {(msg.type === "voice" && msg.file_url) && (
-              <VoiceMessagePlayer url={msg.file_url} isMine={isOwn} />
-            )}
-
-            {msg.content && msg.type === "text" && (
-              <p className="text-sm whitespace-pre-wrap break-words [overflow-wrap:anywhere]">{highlightText(msg.content)}</p>
-            )}
-
-            <div className={`mt-0.5 flex items-center justify-end gap-1 text-[10px] ${isOwn ? "text-chat-bubble-out-foreground/50" : "text-chat-bubble-in-foreground/50"}`}>
-              {msg.is_edited && <span>edited</span>}
-              <span>{time}</span>
-              {isOwn && (
-                msg._optimistic && msg._status === "sending"
-                  ? <Loader2 className="h-3 w-3 animate-spin" />
-                  : msg._optimistic && msg._status === "failed"
-                  ? <AlertCircle className="h-3 w-3 text-destructive" />
-                  : hasReads ? <CheckCheck className="h-3 w-3 text-read" /> : <Check className="h-3 w-3" />
-              )}
-            </div>
-          </div>
+            );
+          })()}
           )}
         </MessageContextMenu>
 

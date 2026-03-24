@@ -216,6 +216,22 @@ export const useSendMessage = () => {
 
       const previous = qc.getQueryData(queryKey);
 
+      // Look up reply_to from cache so the preview renders immediately
+      let cachedReplyTo: { content: string | null; sender_id: string } | null = null;
+      if (msg.reply_to_id) {
+        const cached: any = previous;
+        if (cached?.pages) {
+          outer: for (const page of cached.pages as Message[][]) {
+            for (const m of page) {
+              if (m.id === msg.reply_to_id) {
+                cachedReplyTo = { content: m.content, sender_id: m.sender_id };
+                break outer;
+              }
+            }
+          }
+        }
+      }
+
       const optimisticMessage: Message = {
         id: msg._tempId || `temp-${crypto.randomUUID()}`,
         conversation_id: msg.conversation_id,
@@ -233,7 +249,7 @@ export const useSendMessage = () => {
         updated_at: new Date().toISOString(),
         sender_profile: { display_name: user.user_metadata?.display_name || "You", avatar_url: null },
         read_by: [],
-        reply_to: null,
+        reply_to: cachedReplyTo,
         _optimistic: true as any,
         _status: "sending" as any,
       };
@@ -251,11 +267,23 @@ export const useSendMessage = () => {
       const queryKey = qk.messages(vars.conversation_id);
       qc.setQueryData(queryKey, (old: any) => {
         if (!old?.pages) return old;
+        // Look up reply_to from cache so the preview persists after optimistic → real swap
+        let reply_to: { content: string | null; sender_id: string } | null = null;
+        if (result.data.reply_to_id) {
+          outer: for (const page of old.pages as Message[][]) {
+            for (const m of page) {
+              if (m.id === result.data.reply_to_id) {
+                reply_to = { content: m.content, sender_id: m.sender_id };
+                break outer;
+              }
+            }
+          }
+        }
         const realMsg: Message = {
           ...result.data,
           sender_profile: { display_name: user!.user_metadata?.display_name || "You", avatar_url: null },
           read_by: [],
-          reply_to: null,
+          reply_to,
         };
         return {
           ...old,
