@@ -991,6 +991,9 @@ const MessageBubble = ({
     );
   };
 
+  const isMediaMsg = (msg.type === "photo" || msg.type === "video") && !!msg.file_url;
+  const hasHeader = (isGroup && !isOwn) || !!msg.reply_to || !!msg.forwarded_from_id;
+
   return (
     <div className={`mb-1 flex ${isOwn ? "justify-end" : "justify-start"}`}>
       {isGroup && !isOwn && (
@@ -1032,10 +1035,6 @@ const MessageBubble = ({
               </div>
             </div>
           ) : (
-          {(() => {
-            const isMediaMsg = (msg.type === "photo" || msg.type === "video") && !!msg.file_url;
-            const hasHeader = (isGroup && !isOwn) || !!msg.reply_to || !!msg.forwarded_from_id;
-            return (
               <div className={`relative rounded-2xl overflow-hidden ${isMediaMsg ? "px-0 py-0" : "px-3 py-2"} ${isOwn ? "bg-chat-bubble-out text-chat-bubble-out-foreground rounded-br-md" : "bg-chat-bubble-in text-chat-bubble-in-foreground rounded-bl-md"}`}>
                 {isMediaMsg && hasHeader && (
                   <div className="px-3 pt-2">
@@ -1138,8 +1137,6 @@ const MessageBubble = ({
                   )}
                 </div>
               </div>
-            );
-          })()}
           )}
         </MessageContextMenu>
 
